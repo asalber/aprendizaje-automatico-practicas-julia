@@ -1,0 +1,227 @@
+---
+title: Regresión
+lang: es
+---
+
+Los modelos de aprendizaje basados en regresión son modelos bastante simples que pueden utilizarse para predecir variables cuantitativas (regresión lineal) o cualitativas (regresión logística). Esta práctica contiene ejercicios que muestran como construir modelos de aprendizaje de regresión lineal y regresión logística con Julia.
+
+## Ejercicios Resueltos
+
+Para la realización de esta práctica se requieren los siguientes paquetes:
+
+```julia
+using CSV  # Para la lectura de archivos CSV.
+using DataFrames  # Para el manejo de datos tabulares.
+using PrettyTables  # Para mostrar tablas formateadas.
+using Plots  # Para el dibujo de gráficas.
+using GLMakie  # Para obtener gráficos interactivos.
+```
+
+:::{#exr-regresion-1}
+El conjunto de datos `viviendas.csv` contiene información sobre el precio de venta de viviendas en una ciudad. 
+
+a.  Cargar los datos del archivo `viviendas.csv` en un data frame.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using CSV, DataFrames
+    df = CSV.read("datos/viviendas.csv", DataFrame)
+    first(df, 5)
+    ```
+    :::
+
+a.  Dibujar un diagrama de dispersión entre el precio y el area de las viviendas.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Plots
+    plt = scatter(df.area, df.precio, xlabel="Area", ylabel="Precio", title="Precio vs Area", label = "Ejemplos", fmt=:png,)
+    ```
+    :::
+
+a.  Definir un modelo lineal que explique el precio en función del área de las viviendas.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Un modelo lineal tiene encuación $y = \theta_1 + \theta_2 x$.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    precio(area, θ) = θ[1] .+ θ[2] * area
+    ```
+
+    Observa que la función precio está vectorizada, lo que significa que puede recibir un vector de áreas y devolver un vector de precios.
+    :::
+
+a.  Inicializar los parámetros del modelo lineal con valores nulos y dibujar el modelo sobre el diagrama de dispersión.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    θ = [0.0, 0.0]
+    plot!(df.area, precio(df.area, θ), label = "Modelo 0")
+    ```
+    :::
+
+a.  Definir una función de costo para el modelo lineal y evaluar el coste para el modelo lineal construido con los parámetros iniciales. A la vista del coste obtenido, ¿cómo de bueno es el modelo?
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    La función de coste para un modelo lineal es el error cuadrático medio.
+
+    $$ J(\theta) = \frac{1}{2m} \sum_{i=1}^{m} (h_\theta(x^{(i)}) - y^{(i)})^2 $$
+
+    donde $h_\theta$ es el modelo, $h_\theta(x^{(i)})$ es la predicción del modelo para el ejemplo $i$-ésimo, $y^{(i)}$ es el valor real observado para el ejemplo $i$-ésimo, y $m$ es el número de ejemplos.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    function coste(θ, X, Y)
+        m = length(Y)
+        return sum((precio(X, θ) .- Y).^2) / (2 * m)
+    end
+
+    coste(θ, df.area, df.precio)
+    ```
+
+    La función de coste nos da una medida de lo lejos que están las predicciones del modelo de los valores reales observados. En este caso, el coste es muy alto, lo que indica que el modelo no es bueno.
+    :::
+
+a.  ¿En qué dirección debemos modificar los parámetros del modelo para mejorar el modelo?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    Para minimizar la función de coste, debemos modificar los parámetros del modelo en la dirección opuesta al gradiente de la función de coste, ya que el gradiente de una función indica la dirección de mayor crecimiento de la función.
+    :::
+
+a.  Crear una función para modificar los pesos del modelo lineal mediante el algoritmo del gradiente descendente, y aplicarla a los parámetros actuales tomando una tasa de aprendizaje de $10^{-8}$. ¿Cómo han cambiado los parámetros del modelo? Dibujar el modelo actualizado sobre el diagrama de dispersión. ¿Cómo ha cambiado el coste?
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    El algoritmo del gradiente descendente actualiza los parámetros del modelo de acuerdo a la siguiente regla:
+
+    $$
+    \theta_j = \theta_j - \alpha \frac{\partial J(\theta)}{\partial \theta_j}
+    $$
+
+    donde $\alpha$ es la tasa de aprendizaje y $\frac{\partial J(\theta)}{\partial \theta_j}$ es la derivada parcial de la función de coste con respecto al parámetro $\theta_j$.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    function gradiente_descendente!(θ, X, Y, α)
+        # Calculamos el número de ejemplos
+        m = length(Y)
+        # Actualizamos el término independiente del modelo lineal.
+        θ[1] -= α * sum(precio(X, θ) - Y) / m
+        # Actualizamos la pendiente del modelo lineal.
+        θ[2] -= α * sum((precio(X, θ) - Y) .* X) / m
+        return θ
+    end
+    ```
+
+    Aplicamos la función a los parámetros del modelo actual y mostramos los nuevos parámetros.
+
+    ```{julia}
+    gradiente_descendente!(θ, df.area, df.precio, 1e-8)
+    θ
+    ```
+
+    Dibujamos el nuevo modelo.
+
+    ```{julia}
+    plot!(df.area, precio(df.area, θ), label = "Modelo 1")
+    ```
+
+    Se observa que ahora la recta está más cerca de la nube de puntos, por lo que el modelo ha mejorado. Calculamos el coste del nuevo modelo.
+
+    ```{julia}
+    coste(θ, df.area, df.precio)
+    ```
+    :::
+
+a.  Repetir el proceso de actualización de los parámetros del modelo mediante el algoritmo del gradiente descendente durante 9 iteraciones más y dibujar los modelos actualizados.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```julia
+    for i = 2:10
+        gradiente_descendente!(θ, df.area, df.precio, 1e-8)
+        plot!(df.area, precio(df.area, θ), label = "Modelo $i", legend = true)
+    end
+    plt
+    ```
+
+    ![](img/regresion/modelos_regresion)
+    :::
+
+a.  Dibujar un gráfico con la evolución del coste del modelo a lo largo de las iteraciones. ¿Cómo se comporta el coste a lo largo de las iteraciones?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    costes = Float64[]
+    for i = 1:10
+        gradiente_descendente!(θ, df.area, df.precio, 1e-8)
+        push!(costes, coste(θ, df.area, df.precio))
+    end
+    costes
+    ```
+
+    El coste del modelo disminuye en cada iteración, lo que indica que el modelo está mejorando. Esto se debe a que el algoritmo del gradiente descendente modifica los parámetros del modelo en la dirección que minimiza la función de coste.
+    :::
+
+a.  ¿Hasta qué iteración habrá que llegar para conseguir un reducción del coste menor de un $0.0001\%$?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    θ = [0.0, 0.0]
+    costes = [0, coste(θ, df.area, df.precio)]
+    i = 1
+    while abs(costes[end] - costes[end-1]) / costes[end-1] > 0.000001
+        i += 1
+        gradiente_descendente!(θ, df.area, df.precio, 1e-8)
+        push!(costes, coste(θ, df.area, df.precio))
+    end
+    i
+    ```
+
+    En este caso, el algoritmo del gradiente descendente converge en 1000 iteraciones.
+    :::
+
+a.  ¿Qué sucede si se utiliza una tasa de aprendizaje $\alpha = 0.0001$? ¿Cómo afecta al coste y a la convergencia del modelo?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    θ = [0.0, 0.0]
+    costes = [coste(θ, df.area, df.precio)]
+    for i = 1:10
+        gradiente_descendente!(θ, df.area, df.precio, 0.0001)
+        push!(costes, coste(θ, df.area, df.precio))
+    end
+    costes
+    ```
+
+    Si la tasa de aprendizaje es demasiado grande, el algoritmo del gradiente descendente puede no converger y el coste puede oscilar en lugar de disminuir. En este caso, el coste aumenta en cada iteración, lo que indica que la tasa de aprendizaje es demasiado grande.
+    :::
+:::
+
