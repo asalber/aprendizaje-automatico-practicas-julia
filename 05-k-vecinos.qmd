@@ -1,0 +1,6 @@
+---
+title: K Vecinos más Cercanos
+lang: es
+---
+
+## Ejercicios Resueltos

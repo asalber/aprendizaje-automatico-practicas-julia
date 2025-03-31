@@ -1,0 +1,15 @@
+Cielo,Temperatura,Humedad,Viento,Tenis
+Soleado,Caluroso,Alta,Suave,No
+Soleado,Caluroso,Alta,Fuerte,No
+Nublado,Caluroso,Alta,Suave,Sí
+Lluvioso,Moderado,Alta,Suave,Sí
+Lluvioso,Frío,Normal,Suave,Sí
+Lluvioso,Frío,Normal,Fuerte,No
+Nublado,Frío,Normal,Fuerte,Sí
+Soleado,Moderado,Alta,Suave,No
+Soleado,Frío,Normal,Suave,Sí
+Lluvioso,Moderado,Normal,Suave,Sí
+Soleado,Moderado,Normal,Fuerte,Sí
+Nublado,Moderado,Alta,Fuerte,Sí
+Nublado,Caluroso,Normal,Suave,Sí
+Lluvioso,Moderado,Alta,Fuerte,No

@@ -1,0 +1,6 @@
+---
+title: Naïve Bayes
+lang: es
+---
+
+## Ejercicios Resueltos

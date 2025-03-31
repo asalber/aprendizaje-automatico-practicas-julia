@@ -1,0 +1,557 @@
+---
+title: Árboles de decisión
+lang: es
+---
+
+Los árboles de decisión son modelos de aprendizaje simples e intuitivos que pueden utilizarse para tanto para predecir variables cuantitativas (regresión) como categóricas (clasificación). Esta práctica contiene ejercicios que muestran como construir modelos de aprendizaje basados en árboles de decisión con Julia.
+
+## Ejercicios Resueltos
+
+Para la realización de esta práctica se requieren los siguientes paquetes:
+
+```julia
+using CSV  # Para la lectura de archivos CSV.
+using DataFrames  # Para el manejo de datos tabulares.
+using Tidier # Para el preprocesamiento de datos.
+using PrettyTables  # Para mostrar tablas formateadas.
+using Plots  # Para el dibujo de gráficas.
+using GLMakie  # Para obtener gráficos interactivos.
+using AlgebraOfGraphics # Para generar gráficos mediante la gramática de gráficos.
+using DecisionTree # Para construir árboles de decisión.
+using GraphMakie # Para la visualización de árboles de decisión.
+```
+
+:::{#exr-arboles-decision-1}
+El conjunto de datos [`tenis.csv`](/datos/tenis.csv) contiene información sobre las condiciones meteorológicas de varios días y si se pudo jugar al tenis o no.
+
+a.  Cargar los datos del archivo `tenis.csv` en un data frame.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using CSV, DataFrames
+    df = CSV.read("datos/tenis.csv", DataFrame)
+    ```
+    :::
+
+a.  Crear un diagrama de barras que muestre la distribución de frecuencias de cada variable meteorológica según si se pudo jugar al tenis o no. ¿Qué variable meteorológica parece tener más influencia en la decisión de jugar al tenis?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using GLMakie, AlgebraOfGraphics
+
+    function frecuencias(df::DataFrame, var::Symbol)
+        # Calculamos el número de días de cada clase que se juega al tenis.
+        frec = combine(groupby(df, [var, :Tenis]), nrow => :Días)
+        # Dibujamos el diagrama de barras.
+        plt = data(frec) * 
+        mapping(var, :Días, stack = :Tenis, color = :Tenis, ) * 
+        visual(BarPlot) 
+        # Devolvemos el gráfico.
+        return plt
+    end
+
+    fig = Figure()
+    draw!(fig[1, 1], frecuencias(df, :Cielo))
+    draw!(fig[1, 2], frecuencias(df, :Temperatura))
+    draw!(fig[1, 3], frecuencias(df, :Humedad))
+    draw!(fig[1, 4], frecuencias(df, :Viento))
+    fig
+    ```
+
+    A la vista de las frecuencias de cada variable, las variable `Cielo` y `Humedad` parecen ser las que más influye en la decisión de jugar al tenis.
+    :::
+
+a.  Calcular la impureza del conjunto de datos utilizando el índice de Gini. ¿Qué variable meteorológica parece tener más influencia en la decisión de jugar al tenis?
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    El [índice de Gini](https://en.wikipedia.org/wiki/Decision_tree_learning#Gini_impurity) se calcula mediante la fórmula
+    
+    $$ GI = 1 - \sum_{i=1}^{n} p_i^2 $$
+
+    donde $p_i$ es la proporción de cada clase en el conjunto de datos y $n$ es el número de clases.
+    
+    El índice de Gini toma valores entre $0$ y $1-\frac{1}{n}$ ($0.5$ en el caso de clasificación binaria), donde $0$ indica que todas las instancias pertenecen a una sola clase (mínima impureza) y $1-\frac{1}{n}$ indica que las instancias están distribuidas uniformemente entre todas las clases (máxima impureza).
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    function gini(df::DataFrame, var::Symbol)
+        # Calculamos el número de ejemplos.
+        n = nrow(df)
+        # Calculamos las frecuencias absolutas de cada clase.
+        frec = combine(groupby(df, var), nrow => :ni)
+        # Calculamos la proporción de cada clase.
+        frec.p = frec.ni ./ n
+        # Calculamos el índice de Gini.
+        gini = 1 - sum(frec.p .^ 2)
+        return gini
+    end
+
+    g0 = gini(df, :Tenis)
+    ```
+    :::
+
+a.  ¿Qué reducción del índice Gini se obtiene si dividimos el conjunto de ejemplos según la variable `Humedad`? ¿Y si dividimos el conjunto con respecto a la variable `Viento`?
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    La reducción del índice de Gini se calcula como la diferencia entre el índice de Gini del conjunto original y el índice de Gini del conjunto dividido.
+    
+    $$ \Delta GI = GI_{original} - GI_{dividido} $$
+
+    donde el índice de Gini del conjunto dividido es la media ponderada de los índices de Gini de los subconjuntos resultantes de la división.
+    :::
+    
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    Calculamos primero la reducción del índice de Gini al dividir el conjunto de ejemplos según la variable `Humedad`.
+
+    ```{julia}
+    using Tidier
+    # Dividimos el conjunto de ejemplos según la variable Humedad.
+    df_humedad_alta = @filter(df, Humedad == "Alta")
+    df_humedad_normal = @filter(df, Humedad == "Normal")
+    # Calculamos los tamaños de los subconjuntos de ejemplos.
+    n = nrow(df_humedad_alta), nrow(df_humedad_normal)
+    # Calculamos el índice de Gini de cada subconjunto.
+    gis = gini(df_humedad_alta, :Tenis), gini(df_humedad_normal, :Tenis)
+    # Calculamos media ponderada de los índices de Gini de los subconjuntos 
+    g_humedad = sum(gis .* n) / sum(n)
+    # Calculamos la reducción del índice de Gini.
+    g0 - g_humedad
+    ```
+
+    Calculamos ahora la reducción del índice de Gini al dividir el conjunto de ejemplos según la variable `Viento`.
+    
+    ```{julia}
+    # Dividimos el conjunto de ejemplos según la variable `Viento`
+    df_viento_fuerte = @filter(df, Viento == "Fuerte")
+    df_viento_suave = @filter(df, Viento == "Suave")
+    # Calculamos los tamaños de los subconjuntos de ejemplos
+    n = nrow(df_viento_fuerte), nrow(df_viento_suave)
+    # Calculamos el índice de Gini de cada subconjunto
+    gis = gini(df_viento_fuerte, :Tenis), gini(df_viento_suave, :Tenis)
+    # Calculamos media ponderada de los índices de Gini de los subconjuntos
+    g_viento = sum(gis .* n) / sum(n)
+    # Calculamos la reducción del índice de Gini
+    g0 - g_viento
+    ```
+
+    Como se puede observar, la reducción del índice de Gini al dividir el conjunto de ejemplos según la variable `Humedad` es mayor que la reducción del índice de Gini al dividir el conjunto con respecto a la variable `Viento`. Por lo tanto, la variable `Humedad` parece tener más influencia en la decisión de jugar al tenis y sería la variable que se debería elegir para dividir el conjunto de ejemplos.
+
+a.  Construir un árbol de decisión que explique si se puede jugar al tenis en función de las variables meteorológicas.
+    
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función `DecisionTreeClassifier` del paquete [`DecisionTree.jl`](https://docs.juliahub.com/DecisionTree/). 
+    :::
+    
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using DecisionTree, CategoricalArrays
+    # Variables predictoras.
+    X = Matrix(select(df, Not(:Tenis)))
+    # Variable objetivo.
+    y = df.Tenis
+    # Convertir las variables categóricas a enteros.
+    X = hcat([levelcode.(categorical(X[:, j])) for j in 1:size(X, 2)]...)
+    # Convertir la variable objetivo a enteros.
+    y = levelcode.(categorical(y))
+    tree = DecisionTreeClassifier(max_depth=3)
+    fit!(tree, X, y)
+    ```
+    :::
+
+a.  Visualizar el árbol de decisión construido.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función `plot_tree` del paquete [`DecisionTree.jl`](https://docs.juliahub.com/DecisionTree/).
+    :::
+    
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    print_tree(tree, feature_names=names(df)[1:end-1])
+    ```
+:::
+
+
+:::{#exr-arboles-decision-2}
+El conjunto de datos [pingüinos.csv]() contiene un conjunto de datos sobre tres eEspecie de pingüinos con las siguientes variables:
+
+- Especie: Especie de pingüino, comúnmente Adelie, Chinstrap o Gentoo.
+- Isla: Isla del archipiélago Palmer donde se realizó la observación.
+- Longitud_pico: Longitud del pico en mm.
+- Profundidad_pico: Profundidad del pico en mm
+- Longitud_ala: Longitud de la aleta en mm.
+- Peso: Masa corporal en gramos.
+- Sexo: Sexo
+
+a.  Cargar los datos del archivo `pinguïnos.csv` en un data frame.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using CSV, DataFrames
+    df = CSV.read("datos/pingüinos.csv", DataFrame, missingstring="NA")
+    ```
+
+a.  Hacer un análisis de los datos perdidos en el data frame. 
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    describe(df, :nmissing)
+    ```
+    :::
+
+a.  Eliminar del data frame los casos con valores perdidos.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+    ```{julia}
+    dropmissing!(df)
+    ```
+    :::
+
+a.  Crear diagramas que muestren la distribución de frecuencias de cada variable según la especie de pingüino. ¿Qué variable parece tener más influencia en la especie de pingüino?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    Para las variables cualitativas dibujamos diagramas de barras.
+
+    ```{julia}
+    using GLMakie, AlgebraOfGraphics
+
+    frec_isla = combine(groupby(df, [:Isla, :Especie]), nrow => :Frecuencia)
+    data(frec_isla) * 
+        mapping(:Isla, :Frecuencia, stack = :Especie, color =:Especie) *
+        visual(BarPlot) |> draw
+    ```
+    
+    ```{julia}
+    frec_sexo = combine(groupby(df, [:Sexo, :Especie]), nrow => :Frecuencia)
+    data(frec_sexo) * 
+        mapping(:Sexo, :Frecuencia, stack = :Especie, color =:Especie) *
+        visual(BarPlot) |> draw
+    ```
+
+    Para las variables cuantitativas dibujamos diagramas de cajas.
+
+    ```{julia}
+    function cajas(df, var, clase)
+        data(df) *
+            mapping(clase, var, color = clase) *
+            visual(BoxPlot) |> 
+            draw
+    end
+
+    cajas(df, :Longitud_pico, :Especie)
+    ```
+    
+    ```{julia}
+    cajas(df, :Profundidad_pico, :Especie)
+    ```
+    
+    ```{julia}
+    cajas(df, :Longitud_ala, :Especie)
+    ```
+    
+    ```{julia}
+    cajas(df, :Peso, :Especie)
+    ```
+    :::
+
+a.  ¿Cuál es la reducción de la impureza del conjunto de datos si dividimos el conjunto de datos en dos conjuntos según si la longitud del pico es mayor o menor que 44 mm?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Tidier
+    function gini(df::DataFrame, var::Symbol)
+        n = nrow(df)
+        frec = combine(groupby(df, var), nrow => :ni)
+        frec.p = frec.ni ./ n
+        gini = 1 - sum(frec.p .^ 2)
+        return gini
+    end
+
+    function reduccion_impureza(df::DataFrame, var::Symbol, val::Number)
+        # Dividimos el conjunto de ejemplos según la longitud del pico es menor de 44.
+        df_menor = @eval @filter($df, $var <= $val)
+        df_mayor = @eval @filter($df, $var > $val)
+        # Calculamos los tamaños de los subconjuntos de ejemplos.
+        n = nrow(df_menor), nrow(df_mayor)
+        # Calculamos el índice de Gini de cada subconjunto.
+        gis = gini(df_menor, :Especie), gini(df_mayor, :Especie)
+        # Calculamos media ponderada de los índices de Gini de los subconjuntos.
+        g1 = sum(gis .* n) / sum(n)
+        # Calculamos la reducción del índice de Gini.
+        gini(df, :Especie) - g1
+    end
+
+    reduccion_impureza(df, :Longitud_pico, 44)
+    ```
+    :::
+
+a.  Determinar el valor óptimo de división del conjunto de datos según la longitud del pico. Para ello, calcular la reducción de la impureza para cada valor de longitud del pico y dibujar el resultado.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    Dibujamos la reducción de la impureza en función de la longitud del pico.
+
+    ```{julia}
+    using Plots
+    # Valores únicos de longitud del pico.
+    valores = unique(df.Longitud_pico)
+    # Reducción de la impureza para cada valor.
+    reducciones = [reduccion_impureza(df, :Longitud_pico, val) for val in valores]
+    # Graficamos el resultado.
+    Plots.scatter(valores, reducciones, xlabel = "Longitud del pico", ylabel = "Reducción de la impureza", legend = false)
+    ```
+
+    Y ahora obtenemos el valor óptimo de división del conjunto de datos según la longitud del pico.
+
+    ```{julia}
+    val_optimo = valores[argmax(reducciones)]
+    ```
+    ::: 
+
+a.  Dividir aleatoriamente el dataframe en un conjunto de entrenamiento y un conjunto de test con proporciones $3/4$ y $1/4$ respectivamente.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Utilizar la función [`shuffle`](https://docs.julialang.org/en/v1/stdlib/Random/#Random.shuffle) del paquete [`Random`](https://docs.julialang.org/en/v1/stdlib/Random/) para barajar el dataframe y luego dividirlo en dos subconjuntos.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución    
+
+    ```{julia}
+    using Random
+    # Establecemos la semilla para la reproducibilidad.
+    Random.seed!(1234)
+    # Barajamos el dataframe.
+    df = shuffle(df)
+    # Dividimos el dataframe en un conjunto de entrenamiento y un conjunto de test.
+    n = nrow(df)
+    df_test = df[1:div(n, 4), :]
+    df_train = df[div(n, 4)+1:end, :]
+    ```
+    :::
+
+a.  Construir un árbol de decisión con el conjunto de entrenamiento sin tener en cuenta la variable `Isla` y visualizarlo.
+    
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using DecisionTree, CategoricalArrays
+    # Variables predictivas.
+    X_train = Matrix(select(df_train, Not(:Isla, :Especie)))
+    # Variable objetivo.
+    y_train = df_train.Especie
+    # Convertir las variables categóricas a enteros.
+    X_train = hcat([levelcode.(categorical(X_train[:, j])) for j in 1:size(X_train, 2)]...)
+    # Convertir la variable objetivo a enteros
+    y_train = levelcode.(categorical(y_train))
+
+    # Construimos el árbol de decisión con profundidad máxima 3.
+    tree = DecisionTreeClassifier(max_depth = 3)
+    fit!(tree, X_train, y_train)
+    print_tree(tree, feature_names=names(df)[3:end])
+    ```
+    :::
+
+a.  Predecir la especie de los pingüinos del conjunto de test y calcular la matriz de confusión de las predicciones.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Utilizar la función [`confmat`](https://juliaai.github.io/StatisticalMeasures.jl/stable/confusion_matrices/#StatisticalMeasures.ConfusionMatrices.confmat) del paquete [`StatisticalMeaures`](https://juliaai.github.io/StatisticalMeasures.jl) para barajar el dataframe y luego dividirlo en dos subconjuntos.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using StatisticalMeasures
+    # Variables predictivas
+    X_test = Matrix(select(df_test, Not(:Isla, :Especie)))
+    # Variable objetivo
+    y_test = df_test.Especie
+    # Convertir las variables categóricas a enteros
+    X_test = hcat([levelcode.(categorical(X_test[:, j])) for j in 1:size(X_test, 2)]...)
+    # Convertir la variable objetivo a enteros
+    y_test = levelcode.(categorical(y_test))
+    # Predecimos la especie de pingüino del conjunto de test
+    y_pred = predict(tree, X_test)
+    # Calculamos la precisión del modelo
+    confmat(y_pred, y_test)
+    ```
+    :::
+
+a.  Calcular la precisión del modelo.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    La precisión es la proporción de predicciones correctas sobre el total de predicciones.
+
+    Utilizar la función [`accuracy`](https://juliaai.github.io/StatisticalMeasures.jl/stable/auto_generated_list_of_measures/#StatisticalMeasures.Accuracy) del paquete [`StatisticalMeaures`](https://juliaai.github.io/StatisticalMeasures.jl) para calcular la precisión del modelo.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Calculamos la precisión del modelo
+    accuracy(y_pred, y_test)
+    ```
+    :::
+
+:::
+
+:::{#exr-arboles-decision-3}
+El fichero [`vinos.csv`](datos/vinos.csv) contiene información sobre las características de una muestra de vinos portugueses de la denominación "Vinho Verde". Las variables que contiene son:
+
+| Variable             | Descripción                                                           | Tipo (unidades)        |
+|----------------------------------------|-----------------------------------------------------------------------|------------------------|
+| tipo                 | Tipo de vino                                                          | Categórica (blanco, tinto) |
+| meses.barrica        | Mesesde envejecimiento en barrica                               | Numérica(meses)  |
+| acided.fija          | Cantidadde ácidotartárico                                 | Numérica(g/dm3)  |
+| acided.volatil       | Cantidad de ácido acético                                             | Numérica(g/dm3)  |
+| acido.citrico        | Cantidad de ácidocítrico                                        | Numérica(g/dm3)  |
+| azucar.residual      | Cantidad de azúcarremanente después de la fermentación          | Numérica(g/dm3)  |
+| cloruro.sodico       | Cantidad de clorurosódico                                       | Numérica(g/dm3)  |
+| dioxido.azufre.libre | Cantidad de dióxido de azufreen formalibre                | Numérica(mg/dm3) |
+| dioxido.azufre.total | Cantidadde dióxido de azufretotal en forma libre o ligada | Numérica(mg/dm3) |
+| densidad             | Densidad                                                              | Numérica(g/cm3)  |
+| ph                   | pH                                                                    | Numérica(0-14)   |
+| sulfatos             | Cantidadde sulfato de potasio                                   | Numérica(g/dm3)  |
+| alcohol              | Porcentajede contenidode alcohol                          | Numérica(0-100)  |
+| calidad              | Calificación otorgada porun panel de expertos                   | Numérica(0-10)   |
+
+a.  Crear un data frame con los datos de los vinos a partir del fichero [`vinos.csv`](datos/vinos.csv).
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using CSV, DataFrames
+    df = CSV.read("datos/vinos.csv", DataFrame)
+    ```
+    :::
+
+a.  Mostrar los tipos de cada variable del data frame.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función `schema` del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/).
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using MLJ
+    schema(df)
+    ```
+    :::
+
+a.  Hacer un análisis de los datos perdidos en el data frame.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    describe(df, :nmissing)
+    ```
+    :::
+
+a.  Se considera que un vino es bueno si tiene una puntuación de calidad mayor que $6.5$. Recodificar la variable `calidad` en una variable categórica que tome el valor 1 si la calidad es mayor que $6.5$ y 0 en caso contrario.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using CategoricalArrays
+    # Recodificamos la variable calidad.
+    df.calidad = cut(df.calidad, [0, 6.5, 10], labels = [0, 1])
+    ```
+    :::
+
+a.  Descomponer el data frame en un data frame con las variables predictivas y un vector con la variable objetivo `bueno`.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    y, X = unpack(df, ==(:calidad), rng = 123)
+    ```
+    :::
+
+a.  Para poder entrenar un modelo de un arbol de decisión, las variables predictivas deben ser cuantitativas. Transmformar las variables categóricas en variables numéricas.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Convertir las variables categóricas a enteros.
+    coerce!(X, :tipo => OrderedFactor, :meses_barrica => Continuous)
+    schema(X)
+    ```
+    :::
+
+a.  Definir un modelo de árbol de decisión con profundidad máxima 3.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Cargar el modelo `DecisionTreeClassifier` del paquete [`DecisionTree`](https://docs.juliahub.com/DecisionTree/) con la macros `@iload`.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    Tree = @iload DecisionTreeClassifier pkg = "DecisionTree"
+    tree = Tree(max_depth = 3, rng = 123)
+    ```
+    :::
+
+a.  Evaluar el modelo mediante validación cruzada usando las métricas de la pérdida de entropía cruzada estratificada, la matriz de confusión, la tasa de verdaderos positivos, la tasa de verdaderos negativos, el valor predictivo positivo, el valor predictivo negativo y la precisión. ¿Es un buen modelo?
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`evaluate`](https://juliaai.github.io/MLJ.jl/stable/evaluating_model_performance/#MLJBase.evaluate!) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para evaluar el modelo. 
+    
+    Para indicar que se utilice como método de muestreo la validación cruzada se utiliza el parámetro `resampling = CV(shuffle=true)`, mientras que para usar validación cruzada estratificada se utiliza `resampling = StratifiedCV(shuffle=true)`. 
+    
+    Para indicar las métricas a utilizar se utiliza el parámetro `measures = [cross_entropy, confusion_matrix, true_positive_rate, true_negative_rate, ppv, npv, accuracy]`.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    evaluate(tree, X, y, resampling = StratifiedCV(shuffle=true), measures=[cross_entropy, confusion_matrix, true_positive_rate, true_negative_rate, ppv, npv, accuracy])
+    ```
+
+    La precisión del modelo es de $0.834$ que no está mal, pero si consdieramos la tasa de verdadero positivos, que es $0.13$ y la tasa de verdaderos negativos, que es prácticamente 1, el modelo tiene un buen rendimiento en la clasificación de los vinos malos, pero un mal rendimiento en la clasificación de los vinos malos. Por lo tanto, el modelo no es un buen modelo.
+    :::
+:::

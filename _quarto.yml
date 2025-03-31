@@ -43,7 +43,9 @@ book:
     - 01-introduccion.qmd
     - 02-preprocesamiento.qmd
     - 03-regresion.qmd
-    #- 04-arboles-decision.qmd
+    # - 05-naive-bayes.qmd
+    # - 06-k-vecinos.qmd
+    - 07-arboles-decision.qmd
 
 #bibliography: references.bib
 

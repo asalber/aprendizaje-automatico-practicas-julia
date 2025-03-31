@@ -1,4 +1,4 @@
-tipo,meses.barrica,acided.fija,acided.volatil,acido.citrico,azucar.residual,cloruro.sodico,dioxido.azufre.libre,dioxido.azufre.total,densidad,ph,sulfatos,alcohol,calidad
+tipo,meses_barrica,acided_fija,acided_volatil,acido_citrico,azucar_residual,cloruro_sodico,dioxido_azufre_libre,dioxido_azufre_total,densidad,ph,sulfatos,alcohol,calidad
 tinto,0,7.4,0.7,0,1.9,0.076,11,34,0.9978,3.51,0.56,9.4,5
 tinto,0,7.8,0.88,0,2.6,0.098,25,67,0.9968,3.2,0.68,9.8,5
 tinto,3,7.8,0.76,0.04,2.3,0.092,15,54,0.997,3.26,0.65,9.8,5

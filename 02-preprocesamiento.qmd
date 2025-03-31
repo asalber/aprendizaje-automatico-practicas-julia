@@ -62,7 +62,7 @@ a.  Crear una nueva columna con los beneficios de cada mes (ingresos - gastos - 
     ```
     :::
 
-a.  Crear una nueva columna con el factor `Balance` con dos posibles categorías: `positivo` si ha habido beneficios y `negativo` si ha habido pérdidas.
+a.  Crear una nueva columna con la variable `Balance` con dos posibles categorías: `positivo` si ha habido beneficios y `negativo` si ha habido pérdidas.
 
     :::{.callout-tip collapse="true"}
     ## Solución
@@ -209,13 +209,14 @@ a.  Filtrar el data frame para eliminar las filas con datos perdidos en la colum
 
     :::{.callout-note collapse="true"}
     ## Ayuda
-    Utilizar la función [`ismissing`](https://docs.julialang.org/en/v1/base/base/#Base.ismissing) en la condición del filtro.
+    Utilizar la función [`dropmissing`, col](https://dataframes.juliadata.org/stable/lib/functions/#DataFrames.dropmissing) donde `col` es el nombre de la columna que contiene los valores perdidos.
     :::
 
     :::{.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
-    df[.!ismissing.(df.colesterol), :]
+    dropmissing(df, :colesterol)    
     ```
     :::
 
@@ -302,29 +303,12 @@ a.  Recodificar la variable `grupo` en una colección de columnas binarias.
 
 ## Ejercicios propuestos
 
-```{julia}
-#| include: false
-using QuizQuestions
-nothing
-```
-
-:::{#exr-sucesiones-propuesto-1}
-Calcular el décimo término de la sucesión $\left(\frac{3n^2+n}{6n^2-1}\right)_{n=1}^\infty$.
-
-```{julia}
-#| hold: true
-#| echo: false
-a(n)=(3n^2+n)/(6n^2-1)
-numericq(a(10), 1e-5, hint="Introducir hasta 5 decimales")
-```
-:::
-
 :::{#exr-preprocesaimento-5}
-Los ficheros [`vinos-blancos.xls`](datos/vinos-blancos.xls) y [`vinos-tintos.csv`](datos/vinos-tintos.csv) contienen información sobre las características de vinos blancos y tintos portugueses de la denominación "Vinho Verde". Las variables almacenadas en estos archivos son las siguientes:
+El fichero [`vinos.csv`](datos/vinos.csv) contiene información sobre las características de una muestra de vinos portugueses de la denominación "Vinho Verde". Las variables que contiene son:
 
 | Variable             | Descripción                                                           | Tipo (unidades)        |
 |----------------------------------------|-----------------------------------------------------------------------|------------------------|
-| tipo                 | Tipo de vino                                                          | Factor (blanco, tinto) |
+| tipo                 | Tipo de vino                                                          | Categórica (blanco, tinto) |
 | meses.barrica        | Mesesde envejecimiento en barrica                               | Numérica(meses)  |
 | acided.fija          | Cantidadde ácidotartárico                                 | Numérica(g/dm3)  |
 | acided.volatil       | Cantidad de ácido acético                                             | Numérica(g/dm3)  |
@@ -339,17 +323,13 @@ Los ficheros [`vinos-blancos.xls`](datos/vinos-blancos.xls) y [`vinos-tintos.csv
 | alcohol              | Porcentajede contenidode alcohol                          | Numérica(0-100)  |
 | calidad              | Calificación otorgada porun panel de expertos                   | Numérica(0-10)   |
 
-a.  Crear un data frame con los datos de los vinos blancos partir del fichero de Excel [`vinos-blancos.xlsx`](datos/vinos-blancos.xlsx).
+a.  Crear un data frame con los datos de los vinos a partir del fichero [`vinos.csv`](datos/vinos.csv).
 
-a.  Crear un data frame con los datos de los vinos tintos partir del fichero csv [`vinos-tintos.csv`](datos/vinos-tintos.csv).
-
-a.  Fusionar los datos de los vinos blancos y tintos en un nuevo data frame.
-
-a.  Convertir el tipo de vino en un factor.
+a.  Obtener el número de valores perdidos en cada columna.
 
 a.  Imputar los valores perdidos del alcohol con la media de los valores no perdidos para cada tipo de vino.
 
-a.  Crear un factor `Envejecimiento` recodificando la variable `meses.barrica` en las siguientes categorías.
+a.  Crear la variable categórica `Envejecimiento` recodificando la variable `meses.barrica` en las siguientes categorías.
 
     | Rango en meses | Categoría |
     |:-|:-|
@@ -358,7 +338,7 @@ a.  Crear un factor `Envejecimiento` recodificando la variable `meses.barrica` e
     | Entre 12 y 18 | Reserva |
     | Más de 18 | Gran reserva |
 
-a.  Crear un factor `Dulzor` recodificando la variable `azucar.residual` en las siguientes categorías.
+a.  Crear la variable categórica `Dulzor` recodificando la variable `azucar.residual` en las siguientes categorías.
 
     | Rango azúcar | Categoría |
     |:-|:-|
@@ -370,4 +350,6 @@ a.  Crear un factor `Dulzor` recodificando la variable `azucar.residual` en las 
 a.  Filtrar el conjunto de datos para quedarse con los vinos Reserva o Gran Reserva con una calidad superior a 7 y ordenar el data frame por calidad de forma descendente.
 
 a.  ¿Cuántos vinos blancos con un contenido en alcohol superior al 12% y una calidad superior a 8 hay en el conjunto de datos?
+
+a.  ¿Cuáles son los 10 mejores vinos tintos crianza secos?
 :::
