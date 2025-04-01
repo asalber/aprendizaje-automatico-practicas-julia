@@ -146,12 +146,24 @@ a.  ¿Qué reducción del índice Gini se obtiene si dividimos el conjunto de ej
     ```
 
     Como se puede observar, la reducción del índice de Gini al dividir el conjunto de ejemplos según la variable `Humedad` es mayor que la reducción del índice de Gini al dividir el conjunto con respecto a la variable `Viento`. Por lo tanto, la variable `Humedad` parece tener más influencia en la decisión de jugar al tenis y sería la variable que se debería elegir para dividir el conjunto de ejemplos.
+    :::
 
 a.  Construir un árbol de decisión que explique si se puede jugar al tenis en función de las variables meteorológicas.
     
     :::{.callout-note collapse="true"}
     ## Ayuda
     Usar la función `DecisionTreeClassifier` del paquete [`DecisionTree.jl`](https://docs.juliahub.com/DecisionTree/). 
+
+    Los parámetros más importantes de esta función son:
+
+    - `max_depth`: Profundidad máxima del árbol. Si no se indica, el árbol crecerá hasta que todas las hojas sean puras o hasta que todas las hojas contengan menos de `min_samples_split` ejemplos.
+    - `min_samples_leaf`: Número mínimo de ejemplos en una hoja (1 por defecto).
+    - `min_samples_split`: Número mínimo de ejemplos para dividir un nodo (2 por defecto).
+    - `min_impurity_decrease`: Reducción mínima de la impureza para dividir un nodo (0 por defecto).
+    - `post-prune`: Si se indica `true`, se poda el árbol después de que se ha construido. La poda reduce el tamaño del árbol eliminando nodos que no aportan información útil.
+    - `merge_purity_threshold`: Umbral de pureza para fusionar nodos. Si se indica, se fusionan los nodos que tienen una pureza menor que este umbral.
+    - `feature_importance`: Indica la medida para calcular la importancia de las variables a la hora de dividir el conjunto de datos. Puede ser `:impurity` o `:split`. Si no se indica, se utiliza la impureza de Gini.
+    - `rng`: Indica la semilla para la generación de números aleatorios. Si no se indica, se utiliza el generador de números aleatorios por defecto.
     :::
     
     :::{.callout-tip collapse="true"}
@@ -185,8 +197,8 @@ a.  Visualizar el árbol de decisión construido.
     ```{julia}
     print_tree(tree, feature_names=names(df)[1:end-1])
     ```
+    :::
 :::
-
 
 :::{#exr-arboles-decision-2}
 El conjunto de datos [pingüinos.csv]() contiene un conjunto de datos sobre tres eEspecie de pingüinos con las siguientes variables:
@@ -208,6 +220,7 @@ a.  Cargar los datos del archivo `pinguïnos.csv` en un data frame.
     using CSV, DataFrames
     df = CSV.read("datos/pingüinos.csv", DataFrame, missingstring="NA")
     ```
+    :::
 
 a.  Hacer un análisis de los datos perdidos en el data frame. 
 
@@ -484,6 +497,22 @@ a.  Hacer un análisis de los datos perdidos en el data frame.
     ```
     :::
 
+a.  Mostrar la distribución de frecuencias de las variables cuantitativas del data frame mediante histogramas.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using GLMakie
+    fig = Figure() 
+    ax = [Axis(fig[trunc(Int, i / 3), i % 3], title = names(df)[i+2]) for i in 0:12]
+    for i in 1:13
+        hist!(ax[i], df[!, i+1], strokewidth = 0.5, strokecolor = (:white, 0.5))
+    end
+    fig
+    ```
+    :::
+
 a.  Se considera que un vino es bueno si tiene una puntuación de calidad mayor que $6.5$. Recodificar la variable `calidad` en una variable categórica que tome el valor 1 si la calidad es mayor que $6.5$ y 0 en caso contrario.
 
     :::{.callout-tip collapse="true"}
@@ -492,7 +521,7 @@ a.  Se considera que un vino es bueno si tiene una puntuación de calidad mayor 
     ```{julia}
     using CategoricalArrays
     # Recodificamos la variable calidad.
-    df.calidad = cut(df.calidad, [0, 6.5, 10], labels = [0, 1])
+    df.calidad = cut(df.calidad, [0, 6.5, 10], labels = [" ☹️ ", " 😊 "])
     ```
     :::
 
@@ -529,29 +558,185 @@ a.  Definir un modelo de árbol de decisión con profundidad máxima 3.
     ## Solución
 
     ```{julia}
+    # Cargamos el tipo de modelo.
     Tree = @iload DecisionTreeClassifier pkg = "DecisionTree"
-    tree = Tree(max_depth = 3, rng = 123)
+    # Instanciamos el modelo con sus parámetros.
+    arbol = Tree(max_depth =3, rng = 123)
     ```
     :::
 
-a.  Evaluar el modelo mediante validación cruzada usando las métricas de la pérdida de entropía cruzada estratificada, la matriz de confusión, la tasa de verdaderos positivos, la tasa de verdaderos negativos, el valor predictivo positivo, el valor predictivo negativo y la precisión. ¿Es un buen modelo?
+a.  Evaluar el modelo tomando un 70% de ejemplos en el conjunto de entrenamiento y un 30% en el conjunto de test. Utilizar como métrica la precisión.
 
     :::{.callout-note collapse="true"}
     ## Ayuda
-    Usar la función [`evaluate`](https://juliaai.github.io/MLJ.jl/stable/evaluating_model_performance/#MLJBase.evaluate!) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para evaluar el modelo. 
+    Usar la función [`evaluate`](https://juliaai.github.io/MLJ.jl/stable/evaluating_model_performance/#MLJBase.evaluate!) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para evaluar el modelo. Los parámetros más importantes de esta función son:
+
+    - `resampling`: Indica el método de muestreo para definir los conjuntos de entrenamiento y test. Los métodos más habituales son:
+        - `Holdout(fraction_train = p)`: Divide el conjunto de datos tomando una proporción de $p$ ejemplos en el conjunto de entrenamiento y $1-p$ en el conjunto de test.
+        - `CV(nfolds = n, shuffle = true|false)`: Utiliza validación cruzada con `n` iteraciones. Si se indica `shuffle = true`, se utiliza validación cruzada aleatoria.
+        - `StratifiedCV(nfolds = n, shuffle = true|false)`: Utiliza validación cruzada estratificada con `n` iteraciones. Si se indica `shuffle = true`, se utiliza validación cruzada estratificada aleatoria.
+        - `InSample()`: Utiliza el conjunto de entrenamiento como conjunto de test.
+  
+    - `measures`: Indica las métricas a utilizar para evaluar el modelo. Las métricas más habituales son:
+        - `cross_entropy`: Pérdida de entropía cruzada.
+        - `confusion_matrix`: Matriz de confusión.
+        - `true_positive_rate`: Tasa de verdaderos positivos.
+        - `true_negative_rate`: Tasa de verdaderos negativos.
+        - `ppv`: Valor predictivo positivo.
+        - `npv`: Valor predictivo negativo.
+        - `accuracy`: Precisión.
     
-    Para indicar que se utilice como método de muestreo la validación cruzada se utiliza el parámetro `resampling = CV(shuffle=true)`, mientras que para usar validación cruzada estratificada se utiliza `resampling = StratifiedCV(shuffle=true)`. 
-    
-    Para indicar las métricas a utilizar se utiliza el parámetro `measures = [cross_entropy, confusion_matrix, true_positive_rate, true_negative_rate, ppv, npv, accuracy]`.
+        Se puede indicar más de una en un vector.
     :::
 
     :::{.callout-tip collapse="true"}
     ## Solución
 
     ```{julia}
-    evaluate(tree, X, y, resampling = StratifiedCV(shuffle=true), measures=[cross_entropy, confusion_matrix, true_positive_rate, true_negative_rate, ppv, npv, accuracy])
+    evaluate(arbol, X, y, resampling = Holdout(fraction_train = 0.7, rng = 123), measures = accuracy)
+    ```
+    :::
+
+a.  Evaluar el modelo mediante validación cruzada estratificada usando las métricas de la pérdida de entropía cruzada, la matriz de confusión, la tasa de verdaderos positivos, la tasa de verdaderos negativos, el valor predictivo positivo, el valor predictivo negativo y la precisión. ¿Es un buen modelo?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    evaluate(arbol, X, y, resampling = StratifiedCV(rng = 123), measures = [cross_entropy, confusion_matrix, true_positive_rate, true_negative_rate, ppv, npv, accuracy])
     ```
 
-    La precisión del modelo es de $0.834$ que no está mal, pero si consdieramos la tasa de verdadero positivos, que es $0.13$ y la tasa de verdaderos negativos, que es prácticamente 1, el modelo tiene un buen rendimiento en la clasificación de los vinos malos, pero un mal rendimiento en la clasificación de los vinos malos. Por lo tanto, el modelo no es un buen modelo.
+    La precisión del modelo es de $0.834$ que no está mal, pero si consdieramos la tasa de verdadero positivos, que es $0.13$ y la tasa de verdaderos negativos, que es prácticamente 1, el modelo tiene un buen rendimiento en la clasificación de los vinos malos, pero un mal rendimiento en la clasificación de los vinos buenos. Por lo tanto, no podemos decir que sea un buen modelo.
+    :::
+
+a.  Construir árboles de decisión con profundidades máximas de 2 a 10 y evaluar el modelo con validación cruzada estratificada. ¿Cuál es la profundidad máxima que da mejor resultado?
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`TunedModel`](https://juliaai.github.io/MLJ.jl/stable/tuning_models/#MLJTuning.TunedModel) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para ajustar los parámetros del modelo.
+
+    Los parámetros más importantes de esta función son:
+    - `model`: Indica el modelo a ajustar.
+    - `resampling`: Indica el método de muestreo para definir los conjuntos de entrenamiento y test.
+    - `tuning`: Indica el método de ajuste de los parámetros del modelo. Los métodos más habituales son:
+        - `Grid(resolution = n)`: Ajusta los parámetros del modelo utilizando una cuadrícula de búsqueda con `n` valores.
+        - `RandomSearch(resolution = n)`: Ajusta los parámetros del modelo utilizando una búsqueda aleatoria con `n` valores.
+    - range: Indica el rango de valores a utilizar para ajustar los parámetros del modelo. Se puede indicar un rango de valores o un vector de valores.
+    - `measure`: Indica la métrica a utilizar para evaluar el modelo.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Instanciamos el modelo de árbol de decisión.
+    arbol = Tree()
+    # Definimos el rango de valores a utilizar para ajustar los parámetros del modelo.
+    r = range(arbol, :max_depth, lower=2, upper=10)
+    # Ajustamos los parámetros del modelo utilizando una cuadrícula de búsqueda con 9 valores.
+    arbol_parametrizado = TunedModel(
+        model = arbol,
+        resampling = StratifiedCV(rng = 123),
+        tuning = Grid(resolution = 9),
+        range = r,
+        measure = accuracy)
+    # Definimos una máquina de aprendizaje con el modelo, las variables predictivas y la variable objetivo.
+    mach = machine(arbol_parametrizado, X, y)
+    # Ajustamos los parámetros del modelo.
+    MLJ.fit!(mach)
+    # Mostramos los parámetros del mejor modelo.
+    fitted_params(mach).best_model
+    ```
+    :::
+
+a.  Dibujar la curva de aprendizaje del modelo en función de la profundidad del árbol de decisión.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`learning_curve`](https://juliaai.github.io/MLJ.jl/stable/learning_curves/#MLJBase.learning_curve) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para dibujar la curva de aprendizaje.
+    Los parámetros más importantes de esta función son:
+    - `mach`: Indica la máquina de aprendizaje a utilizar.
+    - `range`: Indica el rango de valores a utilizar para ajustar los parámetros del modelo.
+    - `resampling`: Indica el método de muestreo para definir los conjuntos de entrenamiento y test.
+    - `measure`: Indica la métrica a utilizar para evaluar el modelo.
+    - `rngs`: Indica la semilla para la generación de números aleatorios. Se pueden indicar varias semillas en un vector y se genera una curva de aprendizaje para cada semilla.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Instanciamos el modelo de árbol de decisión.
+    arbol = Tree()
+    # Definimos una máquina de aprendizaje con el modelo, las variables predictivas y la variable objetivo.
+    mach = machine(arbol, X, y)
+    # Definimos el rango de valores a utilizar para ajustar los parámetros del modelo.
+    r = range(arbol, :max_depth, lower=2, upper=10)
+    # Dibujamos la curva de aprendizaje.
+    curva = learning_curve(mach, range = r, resampling = StratifiedCV(rng = 123), measure = accuracy)
+    # Dibujamos la curva de aprendizaje.
+    fig = Figure()
+    ax = Axis(fig[1, 1], title = "Curva de aprendizaje", xlabel = "Profundidad del árbol", ylabel = "Precisión")
+    Makie.scatter!(ax, curva.parameter_values, curva.measurements)
+    fig
+    ```
+    :::
+
+a.  Construir un árbol de decisión con la profundidad máxima que da mejor resultado y visualizarlo.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Instanciamos el modelo de árbol de decisión.
+    arbol = Tree(max_depth = 4)
+    # Definimos una máquina de aprendizaje con el modelo, las variables predictivas y la variable objetivo.
+    mach = machine(arbol, X, y)
+    # Ajustamos los parámetros del modelo.
+    MLJ.fit!(mach)
+    # Visualizamos el árbol de decisión.
+    fitted_params(mach).tree
+    ```
+    :::
+
+a.  ¿Cuál es la importancia de cada variable en el modelo?
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función `feature_importances` del paquete [`DecisionTree`](https://juliaai.github.io/DecisionTree.jl/) para calcular la importancia de cada variable.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Calculamos la importancia de cada variable.
+    feature_importances(mach)
+    ```
+    :::
+
+a.  Predecir la calidad de los 10 primeros vinos del conjunto de ejemplos.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función `predict` del paquete [`DecisionTree`](https://juliaai.github.io/DecisionTree.jl/) para predecir las probabilidades de pertenecer a cada clase un ejemplo o conjunto de ejemplos.
+
+    Usar la función `predict_mode` del paquete [`DecisionTree`](https://juliaai.github.io/DecisionTree.jl/) para predecir la clase de un ejemplo o conjunto de ejemplos.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    Primero calculamos las probabilidades de cada clase.
+
+    ```{julia}
+    MLJ.predict(mach, X[1:10, :])
+    ```
+
+    Y ahora predecimos la clase.
+
+    ```{julia}
+    predict_mode(mach, X[1:10, :])
+    ```
     :::
 :::
