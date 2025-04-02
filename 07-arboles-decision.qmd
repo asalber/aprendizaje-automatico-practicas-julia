@@ -24,7 +24,7 @@ using GraphMakie # Para la visualización de árboles de decisión.
 :::{#exr-arboles-decision-1}
 El conjunto de datos [`tenis.csv`](/datos/tenis.csv) contiene información sobre las condiciones meteorológicas de varios días y si se pudo jugar al tenis o no.
 
-a.  Cargar los datos del archivo `tenis.csv` en un data frame.
+a.  Cargar los datos del archivo [`tenis.csv`](https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/tenis.csv) en un data frame.
 
     :::{.callout-tip collapse="true"}
     ## Solución
@@ -201,7 +201,7 @@ a.  Visualizar el árbol de decisión construido.
 :::
 
 :::{#exr-arboles-decision-2}
-El conjunto de datos [pingüinos.csv]() contiene un conjunto de datos sobre tres eEspecie de pingüinos con las siguientes variables:
+El conjunto de datos [pingüinos.csv](datos/pingüinos.csv) contiene un conjunto de datos sobre tres eEspecie de pingüinos con las siguientes variables:
 
 - Especie: Especie de pingüino, comúnmente Adelie, Chinstrap o Gentoo.
 - Isla: Isla del archipiélago Palmer donde se realizó la observación.
@@ -211,7 +211,7 @@ El conjunto de datos [pingüinos.csv]() contiene un conjunto de datos sobre tres
 - Peso: Masa corporal en gramos.
 - Sexo: Sexo
 
-a.  Cargar los datos del archivo `pinguïnos.csv` en un data frame.
+a.  Cargar los datos del archivo [`pinguïnos.csv`](https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/pingüinos.csv) en un data frame.
 
     :::{.callout-tip collapse="true"}
     ## Solución
@@ -460,7 +460,7 @@ El fichero [`vinos.csv`](datos/vinos.csv) contiene información sobre las caract
 | alcohol              | Porcentajede contenidode alcohol                          | Numérica(0-100)  |
 | calidad              | Calificación otorgada porun panel de expertos                   | Numérica(0-10)   |
 
-a.  Crear un data frame con los datos de los vinos a partir del fichero [`vinos.csv`](datos/vinos.csv).
+a.  Crear un data frame con los datos de los vinos a partir del fichero [`vinos.csv`](https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/vinos.csv).
 
     :::{.callout-tip collapse="true"}
     ## Solución

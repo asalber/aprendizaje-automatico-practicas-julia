@@ -18,18 +18,18 @@ using GLMakie  # Para obtener gráficos interactivos.
 ```
 
 :::{#exr-regresion-1}
-El conjunto de datos `viviendas.csv` contiene información sobre el precio de venta de viviendas en una ciudad. 
+El conjunto de datos [`viviendas.csv`](/datos/viviendas.csv) contiene información sobre el precio de venta de viviendas en una ciudad. 
 
-a.  Cargar los datos del archivo `viviendas.csv` en un data frame.
+a.  Cargar los datos del archivo  [`viviendas.csv`](https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/viviendas.csv) en un data frame.
 
     :::{.callout-tip collapse="true"}
     ## Solución
 
-```{julia}
-using CSV, DataFrames
-df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/viviendas.csv"), DataFrame)
-first(df, 5)
-```
+    ```{julia}
+    using CSV, DataFrames
+    df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/viviendas.csv"), DataFrame)
+    first(df, 5)
+    ```
     :::
 
 a.  Dibujar un diagrama de dispersión entre el precio y el area de las viviendas.
