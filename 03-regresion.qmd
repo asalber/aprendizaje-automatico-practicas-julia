@@ -25,11 +25,11 @@ a.  Cargar los datos del archivo `viviendas.csv` en un data frame.
     :::{.callout-tip collapse="true"}
     ## Solución
 
-    ```{julia}
-    using CSV, DataFrames
-    df = CSV.read("datos/viviendas.csv", DataFrame)
-    first(df, 5)
-    ```
+```{julia}
+using CSV, DataFrames
+df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/viviendas.csv"), DataFrame)
+first(df, 5)
+```
     :::
 
 a.  Dibujar un diagrama de dispersión entre el precio y el area de las viviendas.

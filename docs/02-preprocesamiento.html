@@ -344,7 +344,7 @@ Solución
 </div>
 <div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="6f5877b1" class="cell" data-execution_count="2">
+<div id="9908b8e7" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">DataFrames</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> <span class="fu">DataFrame</span>(</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    Mes <span class="op">=</span> [<span class="st">"Enero"</span>, <span class="st">"Febrero"</span>, <span class="st">"Marzo"</span>, <span class="st">"Abril"</span>],</span>
@@ -421,7 +421,7 @@ Solución
 </div>
 <div id="callout-3" class="callout-3-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="1f383fc2" class="cell" data-execution_count="3">
+<div id="d45d401d" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>df.Beneficios <span class="op">=</span> df.Ingresos <span class="op">-</span> df.Gastos <span class="op">-</span> df.Impuestos</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>df</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="3">
@@ -486,7 +486,7 @@ Solución
 </div>
 </div>
 </div></li>
-<li><p>Crear una nueva columna con el factor <code>Balance</code> con dos posibles categorías: <code>positivo</code> si ha habido beneficios y <code>negativo</code> si ha habido pérdidas.</p>
+<li><p>Crear una nueva columna con la variable <code>Balance</code> con dos posibles categorías: <code>positivo</code> si ha habido beneficios y <code>negativo</code> si ha habido pérdidas.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -499,7 +499,7 @@ Solución
 </div>
 <div id="callout-4" class="callout-4-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="225f1746" class="cell" data-execution_count="4">
+<div id="de59b31f" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>df.Balance <span class="op">=</span> <span class="fu">ifelse</span>.(df.Beneficios <span class="op">.&gt;</span> <span class="fl">0</span>, <span class="st">"positivo"</span>, <span class="st">"negativo"</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>df</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
@@ -583,7 +583,7 @@ Solución
 </div>
 <div id="callout-5" class="callout-5-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="ae500a70" class="cell" data-execution_count="5">
+<div id="1b10ae1d" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>df[df.Balance <span class="op">.==</span> <span class="st">"positivo"</span>, [<span class="op">:</span>Mes, <span class="op">:</span>Beneficios]]</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div><div style="float: left;"><span>3×2 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -642,7 +642,7 @@ Ayuda
 </div>
 <div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>Utilizar la función <a href="https://csv.juliadata.org/stable/reading.html#CSV.read"><code>CSV.read</code></a> del paquete <a href="https://csv.juliadata.org/"><code>CSV</code></a> para partir el rango de valores en intervalos y asociar a cada intervalo una categoría.</p>
+<p>Utilizar la función <a href="https://csv.juliadata.org/stable/reading.html#CSV.read"><code>CSV.read</code></a> del paquete <a href="https://csv.juliadata.org/"><code>CSV</code></a> para crear und data frame a partir de un fichero CSV. Si el fichero está en una url, utilizar la función <a href="https://docs.julialang.org/en/v1/base/download/#Base.download"><code>download(url)</code></a> para descargar el fichero y después leerlo con la función [<code>CSV.read</code>].</p>
 </div>
 </div>
 </div>
@@ -658,9 +658,9 @@ Solución
 </div>
 <div id="callout-7" class="callout-7-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="a63236c6" class="cell" data-execution_count="6">
+<div id="2ca809ff" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CSV</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"datos/colesterol.csv"</span>, DataFrame)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="fu">download</span>(<span class="st">"https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/colesterol.csv"</span>), DataFrame)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
 <div><div style="float: left;"><span>14×6 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame caption-top table table-sm table-striped small" data-quarto-postprocess="true">
@@ -835,7 +835,7 @@ Solución
 </div>
 <div id="callout-8" class="callout-8-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="a2a9e1a4" class="cell" data-execution_count="7">
+<div id="1d2af1d6" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>df.imc <span class="op">=</span> df.peso <span class="op">./</span> (df.altura <span class="op">.^</span> <span class="fl">2</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>df</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="7">
@@ -1067,7 +1067,7 @@ Solución
 </div>
 <div id="callout-10" class="callout-10-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="8dd3fca7" class="cell" data-execution_count="8">
+<div id="e931f0b9" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CategoricalArrays</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>df.obesidad <span class="op">=</span> <span class="fu">cut</span>(df.imc, [<span class="fl">0</span>, <span class="fl">18.5</span>, <span class="fl">24.5</span>, <span class="fl">30</span>, <span class="cn">Inf</span>],</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                labels<span class="op">=</span>[<span class="st">"Bajo peso"</span>, <span class="st">"Saludable"</span>, <span class="st">"Sobrepeso"</span>, <span class="st">"Obeso"</span>],</span>
@@ -1276,7 +1276,7 @@ Solución
 </div>
 <div id="callout-11" class="callout-11-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="b99dcae0" class="cell" data-execution_count="9">
+<div id="d6993657" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>df[<span class="op">:</span>, [<span class="op">:</span>nombre, <span class="op">:</span>sexo, <span class="op">:</span>edad]]</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 <div><div style="float: left;"><span>14×3 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -1417,7 +1417,7 @@ Solución
 </div>
 <div id="callout-13" class="callout-13-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="ca9d7d7b" class="cell" data-execution_count="10">
+<div id="fd41d1d6" class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(df, <span class="fu">Not</span>(<span class="op">:</span>nombre))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="10">
 <div><div style="float: left;"><span>14×7 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -1606,7 +1606,7 @@ Solución
 </div>
 <div id="callout-14" class="callout-14-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="06c808bc" class="cell" data-execution_count="11">
+<div id="d14236b8" class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">select</span>(df, <span class="fu">Cols</span>(<span class="op">:</span>sexo, <span class="op">:</span>edad, <span class="fu">Not</span>(<span class="op">:</span>sexo, <span class="op">:</span>edad)))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="11">
 <div><div style="float: left;"><span>14×8 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -1811,7 +1811,7 @@ Solución
 </div>
 <div id="callout-15" class="callout-15-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="6812324e" class="cell" data-execution_count="12">
+<div id="f4e3e5c8" class="cell" data-execution_count="11">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>df[df.sexo <span class="op">.==</span> <span class="st">"M"</span>, <span class="op">:</span>]</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="12">
 <div><div style="float: left;"><span>6×8 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -1928,7 +1928,7 @@ Solución
 </div>
 <div id="callout-16" class="callout-16-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="1b7f5b88" class="cell" data-execution_count="13">
+<div id="6d66c31d" class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>df[(df.sexo <span class="op">.==</span> <span class="st">"H"</span>) <span class="op">.&amp;</span> (df.edad <span class="op">.&gt;</span> <span class="fl">30</span>), <span class="op">:</span>]</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="13">
 <div><div style="float: left;"><span>5×8 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -2050,7 +2050,7 @@ Solución
 </div>
 <div id="callout-18" class="callout-18-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="ad3de02a" class="cell" data-execution_count="14">
+<div id="2f4cf258" class="cell" data-execution_count="13">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dropmissing</span>(df)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="14">
 <div><div style="float: left;"><span>12×8 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -2249,7 +2249,7 @@ Solución
 </div>
 <div id="callout-20" class="callout-20-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="addecec1" class="cell" data-execution_count="15">
+<div id="50ccca70" class="cell" data-execution_count="14">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dropmissing</span>(df, <span class="op">:</span>colesterol)    </span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="15">
 <div><div style="float: left;"><span>13×8 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -2459,7 +2459,7 @@ Solución
 </div>
 <div id="callout-22" class="callout-22-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="1ddabf45" class="cell" data-execution_count="16">
+<div id="341b17a2" class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Statistics</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>media_colesterol <span class="op">=</span> <span class="fu">mean</span>(<span class="fu">skipmissing</span>(df.colesterol))</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>df.colesterol <span class="op">=</span> <span class="fu">coalesce</span>.(df.colesterol, media_colesterol)</span>
@@ -2683,7 +2683,7 @@ Solución
 </div>
 <div id="callout-24" class="callout-24-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="2f76c845" class="cell" data-execution_count="17">
+<div id="b4af65cf" class="cell" data-execution_count="16">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sort</span>(df, <span class="op">:</span>nombre)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="17">
 <div><div style="float: left;"><span>14×8 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -2888,7 +2888,7 @@ Solución
 </div>
 <div id="callout-25" class="callout-25-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="49f62e0d" class="cell" data-execution_count="18">
+<div id="f709716f" class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sort</span>(df, [<span class="op">:</span>sexo, <span class="op">:</span>edad], rev<span class="op">=</span>[<span class="cn">false</span>, <span class="cn">true</span>])</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="18">
 <div><div style="float: left;"><span>14×8 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -3098,9 +3098,9 @@ Solución
 </div>
 <div id="callout-26" class="callout-26-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="8843a550" class="cell" data-execution_count="19">
+<div id="b58f7623" class="cell" data-execution_count="18">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CSV</span>, <span class="bu">DataFrames</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="st">"datos/notas-curso2.csv"</span>, DataFrame; missingstring<span class="op">=</span><span class="st">"NA"</span>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> CSV.<span class="fu">read</span>(<span class="fu">download</span>(<span class="st">"https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/notas-curso2.csv"</span>), DataFrame; missingstring<span class="op">=</span><span class="st">"NA"</span>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="19">
 <div><div style="float: left;"><span>120×9 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">95 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
 <table class="data-frame caption-top table table-sm table-striped small" data-quarto-postprocess="true">
@@ -3464,7 +3464,7 @@ Solución
 </div>
 <div id="callout-27" class="callout-27-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="dc087b4e" class="cell" data-execution_count="20">
+<div id="feea0acc" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(df)[<span class="op">:</span>, [<span class="op">:</span>variable, <span class="op">:</span>nmissing]]</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="20">
 <div><div style="float: left;"><span>9×2 DataFrame</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
@@ -3564,7 +3564,7 @@ Solución
 </div>
 <div id="callout-29" class="callout-29-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<div id="272cf022" class="cell" data-execution_count="21">
+<div id="12a46fc4" class="cell" data-execution_count="20">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">OneHotArrays</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>codificacion <span class="op">=</span> <span class="fu">permutedims</span>(<span class="fu">onehotbatch</span>(df.grupo, <span class="fu">unique</span>(df.grupo)))</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">hcat</span>(df, <span class="fu">DataFrame</span>(codificacion, <span class="op">:</span>auto))</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -4007,77 +4007,9 @@ Solución
 </section>
 <section id="ejercicios-propuestos" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="ejercicios-propuestos"><span class="header-section-number">2.2</span> Ejercicios propuestos</h2>
-<div id="exr-sucesiones-propuesto-1" class="theorem exercise">
-<p><span class="theorem-title"><strong>Ejercicio 2.4</strong></span> Calcular el décimo término de la sucesión <span class="math inline">\(\left(\frac{3n^2+n}{6n^2-1}\right)_{n=1}^\infty\)</span>.</p>
-<div id="098da419" class="cell" data-hold="true" data-execution_count="23">
-<div class="cell-output cell-output-display" data-execution_count="23">
-<script>
-var ID = "IEKoWJuF"
-</script>
-<form class="mx-2 my-3 mw-100 qqquestion" name="WeaveQuestion" data-id="IEKoWJuF" data-controltype="" onsubmit="return false;">
-  <div class="form-group ">
-    <div class="controls">
-      <div class="form" id="controls_IEKoWJuF" correct="-1" attempts="0">
-
-    <div style="padding-top: 5px">
-    <br>
-<div class="input-group" aria-label="Input form: Numeric answer">
-    <input id="IEKoWJuF" type="number" step="any" class="form-control qqinput" placeholder="Numeric answer" aria-label="Numeric answer">
-    <span class="input-group-append" href="#" title="Introducir hasta 5 decimales">&nbsp;🎁</span>
-</div>
-
-         </div>
-    </div>
-    <div id="IEKoWJuF_message" class="qqmessage" style="padding-bottom: 15px">
-    </div>
-
-<script>
-document.getElementById('controls_IEKoWJuF').addEventListener("quizquestion_answer", (e) => {
-          var o = document.getElementById('controls_IEKoWJuF')
-          var atts = Number(o.getAttribute("attempts"))
-          o.setAttribute("correct",  e.detail.correct);
-          o.setAttribute("attempts", atts + 1)
-      }, true)
-</script>
-
-<script text="text/javascript">
-document.getElementById("IEKoWJuF").addEventListener("change", function() {
-  var correct = (Math.abs(this.value - 0.5175292153589316) <= 1.0e-5);
-  var msgBox = document.getElementById('IEKoWJuF_message');
-  
-  if(correct) {
-    msgBox.innerHTML = "<div class='pluto-output admonition note alert alert-success'> <span>✔&nbsp; Correct </span> </div>";
-    var explanation = document.getElementById("explanation_IEKoWJuF")
-    if (explanation != null) {
-       explanation.style.display = "none";
-    }
-      const correct_answer   = new CustomEvent("quizquestion_answer",
-          {bubbles:true, detail:{correct: 1}}
-  );
-  this.dispatchEvent(correct_answer);
-
-  } else {
-    msgBox.innerHTML = "<div class='pluto-output admonition alert alert-danger'> <span>Χ&nbsp; Incorrect </span> </div>";
-    var explanation = document.getElementById("explanation_IEKoWJuF")
-    if (explanation != null) {
-       explanation.style.display = "block";
-    }
-      const incorrect_answer = new CustomEvent("quizquestion_answer",
-           {bubbles:true, detail:{correct: 0}}
-  );
-  this.dispatchEvent(incorrect_answer);
-
-  }
-
-});
-
-</script>
-</div>
-</div></form>
-</div>
 <div id="exr-preprocesaimento-5" class="theorem exercise">
-<p><span class="theorem-title"><strong>Ejercicio 2.5</strong></span> Los ficheros <a href="datos/vinos-blancos.xls"><code>vinos-blancos.xls</code></a> y <a href="datos/vinos-tintos.csv"><code>vinos-tintos.csv</code></a> contienen información sobre las características de vinos blancos y tintos portugueses de la denominación “Vinho Verde”. Las variables almacenadas en estos archivos son las siguientes:</p>
-<table class="caption-top table table-sm table-striped small">
+<p><span class="theorem-title"><strong>Ejercicio 2.4</strong></span> El fichero <a href="datos/vinos.csv"><code>vinos.csv</code></a> contiene información sobre las características de una muestra de vinos portugueses de la denominación “Vinho Verde”. Las variables que contiene son:</p>
+<table class="caption-top table">
 <colgroup>
 <col style="width: 29%">
 <col style="width: 52%">
@@ -4094,7 +4026,7 @@ document.getElementById("IEKoWJuF").addEventListener("change", function() {
 <tr class="odd">
 <td>tipo</td>
 <td>Tipo de vino</td>
-<td>Factor (blanco, tinto)</td>
+<td>Categórica (blanco, tinto)</td>
 </tr>
 <tr class="even">
 <td>meses.barrica</td>
@@ -4164,13 +4096,11 @@ document.getElementById("IEKoWJuF").addEventListener("change", function() {
 </tbody>
 </table>
 <ol type="a">
-<li><p>Crear un data frame con los datos de los vinos blancos partir del fichero de Excel <a href="datos/vinos-blancos.xlsx"><code>vinos-blancos.xlsx</code></a>.</p></li>
-<li><p>Crear un data frame con los datos de los vinos tintos partir del fichero csv <a href="datos/vinos-tintos.csv"><code>vinos-tintos.csv</code></a>.</p></li>
-<li><p>Fusionar los datos de los vinos blancos y tintos en un nuevo data frame.</p></li>
-<li><p>Convertir el tipo de vino en un factor.</p></li>
+<li><p>Crear un data frame con los datos de los vinos a partir del fichero <a href="datos/vinos.csv"><code>vinos.csv</code></a>.</p></li>
+<li><p>Obtener el número de valores perdidos en cada columna.</p></li>
 <li><p>Imputar los valores perdidos del alcohol con la media de los valores no perdidos para cada tipo de vino.</p></li>
-<li><p>Crear un factor <code>Envejecimiento</code> recodificando la variable <code>meses.barrica</code> en las siguientes categorías.</p>
-<table class="caption-top table table-sm table-striped small">
+<li><p>Crear la variable categórica <code>Envejecimiento</code> recodificando la variable <code>meses.barrica</code> en las siguientes categorías.</p>
+<table class="caption-top table">
 <thead>
 <tr class="header">
 <th style="text-align: left;">Rango en meses</th>
@@ -4196,8 +4126,8 @@ document.getElementById("IEKoWJuF").addEventListener("change", function() {
 </tr>
 </tbody>
 </table></li>
-<li><p>Crear un factor <code>Dulzor</code> recodificando la variable <code>azucar.residual</code> en las siguientes categorías.</p>
-<table class="caption-top table table-sm table-striped small">
+<li><p>Crear la variable categórica <code>Dulzor</code> recodificando la variable <code>azucar.residual</code> en las siguientes categorías.</p>
+<table class="caption-top table">
 <thead>
 <tr class="header">
 <th style="text-align: left;">Rango azúcar</th>
@@ -4225,11 +4155,12 @@ document.getElementById("IEKoWJuF").addEventListener("change", function() {
 </table></li>
 <li><p>Filtrar el conjunto de datos para quedarse con los vinos Reserva o Gran Reserva con una calidad superior a 7 y ordenar el data frame por calidad de forma descendente.</p></li>
 <li><p>¿Cuántos vinos blancos con un contenido en alcohol superior al 12% y una calidad superior a 8 hay en el conjunto de datos?</p></li>
+<li><p>¿Cuáles son los 10 mejores vinos tintos crianza secos?</p></li>
 </ol>
 </div>
 
 
-</div></div></section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

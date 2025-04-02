@@ -31,7 +31,7 @@ a.  Cargar los datos del archivo `tenis.csv` en un data frame.
 
     ```{julia}
     using CSV, DataFrames
-    df = CSV.read("datos/tenis.csv", DataFrame)
+    df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/tenis.csv"), DataFrame)
     ```
     :::
 
@@ -218,7 +218,7 @@ a.  Cargar los datos del archivo `pinguïnos.csv` en un data frame.
 
     ```{julia}
     using CSV, DataFrames
-    df = CSV.read("datos/pingüinos.csv", DataFrame, missingstring="NA")
+    df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/pingüinos.csv"), DataFrame, missingstring="NA")
     ```
     :::
 
@@ -467,7 +467,7 @@ a.  Crear un data frame con los datos de los vinos a partir del fichero [`vinos.
 
     ```{julia}
     using CSV, DataFrames
-    df = CSV.read("datos/vinos.csv", DataFrame)
+    df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/vinos.csv"), DataFrame)
     ```
     :::
 

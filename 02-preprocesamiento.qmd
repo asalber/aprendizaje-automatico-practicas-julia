@@ -91,14 +91,14 @@ a.  Crear un data frame con los datos de todos los pacientes del estudio a parti
 
     :::{.callout-note collapse="true"}
     ## Ayuda
-    Utilizar la función [`CSV.read`](https://csv.juliadata.org/stable/reading.html#CSV.read) del paquete [`CSV`](https://csv.juliadata.org/) para partir el rango de valores en intervalos y asociar a cada intervalo una categoría.
+    Utilizar la función [`CSV.read`](https://csv.juliadata.org/stable/reading.html#CSV.read) del paquete [`CSV`](https://csv.juliadata.org/) para crear und data frame a partir de un fichero CSV. Si el fichero está en una url, utilizar la función [`download(url)`](https://docs.julialang.org/en/v1/base/download/#Base.download) para descargar el fichero y después leerlo con la función [`CSV.read`].
     :::
 
     :::{.callout-tip collapse="true"}
     ## Solución
     ```{julia}
     using CSV
-    df = CSV.read("datos/colesterol.csv", DataFrame)
+    df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/colesterol.csv"), DataFrame)
     ```
     :::
 
@@ -270,7 +270,7 @@ a.  Crear un data frame con los datos de los alumnos del curso a partir del fich
     ## Solución
     ```{julia}
     using CSV, DataFrames
-    df = CSV.read("datos/notas-curso2.csv", DataFrame; missingstring="NA")
+    df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/notas-curso2.csv"), DataFrame; missingstring="NA")
     ```
     :::
 
