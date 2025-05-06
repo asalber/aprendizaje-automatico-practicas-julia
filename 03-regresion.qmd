@@ -47,7 +47,7 @@ a.  Definir un modelo lineal que explique el precio en función del área de las
 
     :::{.callout-note collapse="true"}
     ## Ayuda
-    Un modelo lineal tiene encuación $y = \theta_1 + \theta_2 x$.
+    Un modelo lineal tiene ecuación $y = \theta_1 + \theta_2 x$.
     :::
 
     :::{.callout-tip collapse="true"}
@@ -112,23 +112,23 @@ a.  Crear una función para modificar los pesos del modelo lineal mediante el al
     El algoritmo del gradiente descendente actualiza los parámetros del modelo de acuerdo a la siguiente regla:
 
     $$
-    \theta_j = \theta_j - \alpha \frac{\partial J(\theta)}{\partial \theta_j}
+    \theta_j = \theta_j - \eta \frac{\partial J(\theta)}{\partial \theta_j}
     $$
 
-    donde $\alpha$ es la tasa de aprendizaje y $\frac{\partial J(\theta)}{\partial \theta_j}$ es la derivada parcial de la función de coste con respecto al parámetro $\theta_j$.
+    donde $\eta$ es la tasa de aprendizaje y $\frac{\partial J(\theta)}{\partial \theta_j}$ es la derivada parcial de la función de coste con respecto al parámetro $\theta_j$.
     :::
 
     :::{.callout-tip collapse="true"}
     ## Solución
 
     ```{julia}
-    function gradiente_descendente!(θ, X, Y, α)
+    function gradiente_descendente!(θ, X, Y, η)
         # Calculamos el número de ejemplos
         m = length(Y)
         # Actualizamos el término independiente del modelo lineal.
-        θ[1] -= α * sum(precio(X, θ) - Y) / m
+        θ[1] -= η * sum(precio(X, θ) - Y) / m
         # Actualizamos la pendiente del modelo lineal.
-        θ[2] -= α * sum((precio(X, θ) - Y) .* X) / m
+        θ[2] -= η * sum((precio(X, θ) - Y) .* X) / m
         return θ
     end
     ```
@@ -206,7 +206,7 @@ a.  ¿Hasta qué iteración habrá que llegar para conseguir un reducción del c
     En este caso, el algoritmo del gradiente descendente converge en 1000 iteraciones.
     :::
 
-a.  ¿Qué sucede si se utiliza una tasa de aprendizaje $\alpha = 0.0001$? ¿Cómo afecta al coste y a la convergencia del modelo?
+a.  ¿Qué sucede si se utiliza una tasa de aprendizaje $\eta = 0.0001$? ¿Cómo afecta al coste y a la convergencia del modelo?
 
     :::{.callout-tip collapse="true"}
     ## Solución

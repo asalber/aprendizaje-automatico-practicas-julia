@@ -1,0 +1,33 @@
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    neuron/.style={circle, draw, minimum size=1cm},
+    input/.style={rectangle, draw, minimum size=0.5cm, fill=green!20},
+    output/.style={rectangle, draw, minimum size=0.5cm, fill=red!20},
+    weight/.style={font=\small, midway, above, sloped}
+]
+
+% Input neurons
+\node[input] (in1) at (0,1) {1};
+\node[input] (in2) at (0,-1) {$x$};
+
+% Output neuron
+\node[neuron] (out) at (3,0) {\Large $\sum$};
+
+% Connect inputs to output
+\draw[-{Latex[length=2mm]}] (in1) -- (out) node[weight] {$w_0$};
+\draw[-{Latex[length=2mm]}] (in2) -- (out) node[weight] (w1) {$w_1$};
+
+% Activation function
+\node[neuron, right=1cm of out] (activation) {$f(x)$};
+\draw[-{Latex[length=2mm]}] (out) -- (activation);
+% Output function 
+\node[output, right=1cm of activation] (output) {$y$};
+\draw[-{Latex[length=2mm]}] (activation) -- (output);
+
+% Etiquetas
+\node[rotate=90, anchor=north] at (-1,0) {Entradas};
+\node[below=2mm of output] {Salida};
+\node[below=2mm of w1] {Pesos};
+\node[below=2mm of out, align=center] {Suma\\ponderada};
+\node[below=2mm of activation, align=center] {Función de\\activación};
+\end{tikzpicture}

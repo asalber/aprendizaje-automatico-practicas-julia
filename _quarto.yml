@@ -46,6 +46,7 @@ book:
     # - 05-naive-bayes.qmd
     # - 06-k-vecinos.qmd
     - 07-arboles-decision.qmd
+    - 09-redes-neuronales.qmd
 
 #bibliography: references.bib
 

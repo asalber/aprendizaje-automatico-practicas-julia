@@ -3,43 +3,46 @@ title: Preprocesamiento de datos
 lang: es
 ---
 
-Esta práctica contiene ejercicios que muestran como preprocesar un conjunto de datos con Julia. El preprocesamiento de datos es una tarea fundamental en la construcción de modelos de aprendizaje automático que consiste en la limpieza, transformación y preparación de los datos para que puedan alimentar el proceso de entrenamiento de los modelos, así como para la evaluación de su rendimiento. El preprocesamiento de datos incluye tareas como 
+Esta práctica contiene ejercicios que muestran como preprocesar un conjunto de datos con Julia. El preprocesamiento de datos es una tarea fundamental en la construcción de modelos de aprendizaje automático que consiste en la limpieza, transformación y preparación de los datos para que puedan alimentar el proceso de entrenamiento de los modelos, así como para la evaluación de su rendimiento. El preprocesamiento de datos incluye tareas como
 
-- Limpieza de datos.
-- Imputación de valores perdidos.
-- Recodificación de variables.
-- Creación de nuevas variables.
-- Transformación de variables.
-- Selección de variables.
-- Fusión de datos.
-- Reestructuración del conjunto de datos.
-- División del conjunto de datos en subconjuntos de entrenamiento y prueba.
+-   Limpieza de datos.
+-   Imputación de valores perdidos.
+-   Recodificación de variables.
+-   Creación de nuevas variables.
+-   Transformación de variables.
+-   Selección de variables.
+-   Fusión de datos.
+-   Reestructuración del conjunto de datos.
+-   División del conjunto de datos en subconjuntos de entrenamiento y prueba.
 
 ## Ejercicios Resueltos
 
 Para la realización de esta práctica se requieren los siguientes paquetes:
 
-```julia
+``` julia
 using CSV  # Para la lectura de archivos CSV.
 using DataFrames  # Para el manejo de datos tabulares.
 using PrettyTables  # Para mostrar tablas formateadas.
 using Plots  # Para el dibujo de gráficas.
 using Makie  # Para obtener gráficos interactivos.
+using StatsBase  # Para la estandarización de variables.
+using Statistics  # Para el cálculo de estadísticas.
 ```
 
-:::{#exr-preprocesamiento-1}
+::: {#exr-preprocesamiento-1}
 La siguiente tabla contiene los ingresos y gastos de una empresa durante el primer trimestre del año.
 
 a.  Crear un data frame con los datos de la tabla.
 
-    :::{.callout-note collapse="true"}
+    ::: {.callout-note collapse="true"}
     ## Ayuda
+
     Utilizar la función [`DataFrame`](https://dataframes.juliadata.org/stable/lib/types/#DataFrames.DataFrame) del paquete [`DataFrames`](https://dataframes.juliadata.org/) para partir el rango de valores en intervalos y asociar a cada intervalo una categoría.
     :::
-    
-    :::{.callout-tip collapse="true"}
-    
+
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     using DataFrames
     df = DataFrame(
@@ -51,9 +54,9 @@ a.  Crear un data frame con los datos de la tabla.
     ```
     :::
 
-a.  Crear una nueva columna con los beneficios de cada mes (ingresos - gastos - impuestos).
+b.  Crear una nueva columna con los beneficios de cada mes (ingresos - gastos - impuestos).
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
 
     ```{julia}
@@ -62,20 +65,20 @@ a.  Crear una nueva columna con los beneficios de cada mes (ingresos - gastos - 
     ```
     :::
 
-a.  Crear una nueva columna con la variable `Balance` con dos posibles categorías: `positivo` si ha habido beneficios y `negativo` si ha habido pérdidas.
+c.  Crear una nueva columna con la variable `Balance` con dos posibles categorías: `positivo` si ha habido beneficios y `negativo` si ha habido pérdidas.
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
-    
+
     ```{julia}
     df.Balance = ifelse.(df.Beneficios .> 0, "positivo", "negativo")
     df
     ```
     :::
 
-a.  Filtrar el conjunto de datos para quedarse con los nombres de los meses y los beneficios de los meses con balance positivo. 
+d.  Filtrar el conjunto de datos para quedarse con los nombres de los meses y los beneficios de los meses con balance positivo.
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
 
     ```{julia}
@@ -84,54 +87,59 @@ a.  Filtrar el conjunto de datos para quedarse con los nombres de los meses y lo
     :::
 :::
 
-:::{#exr-preprocesamiento-2}
+::: {#exr-preprocesamiento-2}
 El fichero [`colesterol.csv`](datos/colesterol.csv) contiene información de una muestra de pacientes donde se han medido la edad, el sexo, el peso, la altura y el nivel de colesterol, además de su nombre.
 
 a.  Crear un data frame con los datos de todos los pacientes del estudio a partir del fichero [`colesterol.csv`](datos/colesterol.csv).
 
-    :::{.callout-note collapse="true"}
+    ::: {.callout-note collapse="true"}
     ## Ayuda
-    Utilizar la función [`CSV.read`](https://csv.juliadata.org/stable/reading.html#CSV.read) del paquete [`CSV`](https://csv.juliadata.org/) para crear und data frame a partir de un fichero CSV. Si el fichero está en una url, utilizar la función [`download(url)`](https://docs.julialang.org/en/v1/base/download/#Base.download) para descargar el fichero y después leerlo con la función [`CSV.read`].
+
+    Utilizar la función [`CSV.read`](https://csv.juliadata.org/stable/reading.html#CSV.read) del paquete [`CSV`](https://csv.juliadata.org/) para crear und data frame a partir de un fichero CSV. Si el fichero está en una url, utilizar la función [`download(url)`](https://docs.julialang.org/en/v1/base/download/#Base.download) para descargar el fichero y después leerlo con la función \[`CSV.read`\].
     :::
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     using CSV
     df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/colesterol.csv"), DataFrame)
     ```
     :::
 
-a.  Crear una nueva columna con el índice de masa corporal, usando la siguiente fórmula 
+b.  Crear una nueva columna con el índice de masa corporal, usando la siguiente fórmula
 
     $$
     \mbox{IMC} = \frac{\mbox{Peso (kg)}}{\mbox{Altura (cm)}^2}
     $$
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     df.imc = df.peso ./ (df.altura .^ 2)
     df
-    ``` 
+    ```
     :::
 
-a.  Crear una nueva columna con la variable `obesidad` recodificando la columna `imc` en las siguientes categorías.
+c.  Crear una nueva columna con la variable `obesidad` recodificando la columna `imc` en las siguientes categorías.
 
-    | Rango IMC | Categoría |
-    |:-|:-|
-    |Menor de 18.5 | Bajo peso |
-    |De 18.5 a 24.5 | Saludable |
-    |De 24.5 a 30 | Sobrepeso |
-    |Mayor de 30 | Obeso |
+    | Rango IMC      | Categoría |
+    |:---------------|:----------|
+    | Menor de 18.5  | Bajo peso |
+    | De 18.5 a 24.5 | Saludable |
+    | De 24.5 a 30   | Sobrepeso |
+    | Mayor de 30    | Obeso     |
 
-    :::{.callout-note collapse="true"}
+    ::: {.callout-note collapse="true"}
     ## Ayuda
-    Utilizar la función [`cut`](https://categoricalarrays.juliadata.org/stable/apiindex/#CategoricalArrays.cut-Tuple{AbstractArray,%20AbstractVector}) del paquete [`CategoricalArrays`](https://categoricalarrays.juliadata.org/) para partir el rango de valores en intervalos y asociar a cada intervalo una categoría.
+
+    Utilizar la función [`cut`](https://categoricalarrays.juliadata.org/stable/apiindex/#CategoricalArrays.cut-Tuple%7BAbstractArray,%20AbstractVector%7D) del paquete [`CategoricalArrays`](https://categoricalarrays.juliadata.org/) para partir el rango de valores en intervalos y asociar a cada intervalo una categoría.
     :::
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     using CategoricalArrays
     df.obesidad = cut(df.imc, [0, 18.5, 24.5, 30, Inf],
@@ -141,78 +149,87 @@ a.  Crear una nueva columna con la variable `obesidad` recodificando la columna 
     ```
     :::
 
-a.  Seleccionar las columnas `nombre`, `sexo` y `edad`.
+d.  Seleccionar las columnas `nombre`, `sexo` y `edad`.
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     df[:, [:nombre, :sexo, :edad]]
-    ``` 
+    ```
     :::
 
-a.  Anonimizar los datos eliminando la columna `nombre`.
+e.  Anonimizar los datos eliminando la columna `nombre`.
 
-    :::{.callout-note collapse="true"}
+    ::: {.callout-note collapse="true"}
     ## Ayuda
+
     Utilizar la función [`select`](https://dataframes.juliadata.org/stable/lib/functions/#DataFrames.select) del paquete [`DataFrames`](https://dataframes.juliadata.org/) para seleccionar las columnas deseadas y eliminar las columnas no deseadas. Existe también la función [`select!`](https://dataframes.juliadata.org/stable/lib/functions/#DataFrames.select!) que modifica el data frame original eliminando las columnas no seleccionadas.
     :::
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     select(df, Not(:nombre))
     ```
     :::
 
-a.  Reordenar las columnas poniendo la columna `sexo` antes que la columna `edad`.
+f.  Reordenar las columnas poniendo la columna `sexo` antes que la columna `edad`.
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     select(df, Cols(:sexo, :edad, Not(:sexo, :edad)))
     ```
     :::
 
-a.  Filtrar el data frame para quedarse con las mujeres.
+g.  Filtrar el data frame para quedarse con las mujeres.
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     df[df.sexo .== "M", :]
     ```
     :::
 
-a.  Filtrar el data frame para quedarse con los hombres mayores de 30 años.
+h.  Filtrar el data frame para quedarse con los hombres mayores de 30 años.
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     df[(df.sexo .== "H") .& (df.edad .> 30), :]
     ```
     :::
 
-a.  Filtrar el data frame para quedarse con las filas sin valores perdidos.
+i.  Filtrar el data frame para quedarse con las filas sin valores perdidos.
 
-    :::{.callout-note collapse="true"}
+    ::: {.callout-note collapse="true"}
     ## Ayuda
+
     Utilizar la función [`dropmissing`](https://dataframes.juliadata.org/stable/lib/functions/#DataFrames.dropmissing) del paquete [`DataFrames`](https://dataframes.juliadata.org/) para eliminar las filas con valores perdidos.
     :::
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     dropmissing(df)
     ```
     :::
 
-a.  Filtrar el data frame para eliminar las filas con datos perdidos en la columna `colesterol`.
+j.  Filtrar el data frame para eliminar las filas con datos perdidos en la columna `colesterol`.
 
-    :::{.callout-note collapse="true"}
+    ::: {.callout-note collapse="true"}
     ## Ayuda
+
     Utilizar la función [`dropmissing`, col](https://dataframes.juliadata.org/stable/lib/functions/#DataFrames.dropmissing) donde `col` es el nombre de la columna que contiene los valores perdidos.
     :::
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
 
     ```{julia}
@@ -220,15 +237,17 @@ a.  Filtrar el data frame para eliminar las filas con datos perdidos en la colum
     ```
     :::
 
-a.  Imputar los valores perdidos en la columna `colesterol` con la media de los valores no perdidos.
+k.  Imputar los valores perdidos en la columna `colesterol` con la media de los valores no perdidos.
 
-    :::{.callout-note collapse="true"}
+    ::: {.callout-note collapse="true"}
     ## Ayuda
+
     Utilizar la función [`coalesce`](https://dataframes.juliadata.org/stable/lib/functions/#DataFrames.dropmissing) para reemplazar los valores perdidos por otros valores.
     :::
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     using Statistics
     media_colesterol = mean(skipmissing(df.colesterol))
@@ -237,61 +256,86 @@ a.  Imputar los valores perdidos en la columna `colesterol` con la media de los 
     ```
     :::
 
-a.  Ordenar el data frame según la columna `nombre`.
+a.  Crear una nueva columna con las puntuaciones típicas del colesterol, es decir, estandarizando la columna `colesterol`.
 
-    :::{.callout-note collapse="true"}
+    ::: {.callout-note collapse="true"}
     ## Ayuda
+
+    Utilizar la función [`Standardizer`](https://juliastats.org/StatsBase.jl/stable/transformations/#StatsBase.standardize) del paquete [`StatsBase`](https://juliastats.org/StatsBase.jl/) para estandarizar una variable.
+    :::
+
+    ::: {.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using StatsBase
+    df.colesterol_estandarizado = standardize(ZScoreTransform, df.colesterol)
+    df
+    ```
+    :::
+
+l.  Ordenar el data frame según la columna `nombre`.
+
+    ::: {.callout-note collapse="true"}
+    ## Ayuda
+
     Utilizar la función [`sort`](https://docs.julialang.org/en/v1/base/sort/#Base.sort) para ordenar las filas del data frame según los valores de una o varias columnas. Utilizar el parámetro `rev` para especificar mediante un vector de booleanos si el orden es ascendente o descendente.
     :::
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     sort(df, :nombre)
     ```
     :::
 
-a.  Ordenar el data frame ascendentemente por la columna `sexo` y descendentemente por la columna `edad`.
+m.  Ordenar el data frame ascendentemente por la columna `sexo` y descendentemente por la columna `edad`.
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     sort(df, [:sexo, :edad], rev=[false, true])
     ```
     :::
 :::
 
-:::{#exr-preprocesamiento-3}
+::: {#exr-preprocesamiento-3}
 El fichero [`notas-curso2.csv`](datos/curso.csv) contiene información de las notas de los alumnos de un curso.
 
 a.  Crear un data frame con los datos de los alumnos del curso a partir del fichero [`notas-curso2.csv`](datos/notas-curso2.csv).
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     using CSV, DataFrames
     df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/notas-curso2.csv"), DataFrame; missingstring="NA")
     ```
     :::
 
-a.  Obtener el número de datos perdidos en cada columna.
+b.  Obtener el número de datos perdidos en cada columna.
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     describe(df)[:, [:variable, :nmissing]]
     ```
     :::
 
-a.  Recodificar la variable `grupo` en una colección de columnas binarias.
+c.  Recodificar la variable `grupo` en una colección de columnas binarias.
 
-    :::{.callout-note collapse="true"}
+    ::: {.callout-note collapse="true"}
     ## Ayuda
+
     Utilizar la función [`onehotbatch`](https://fluxml.ai/Flux.jl/stable/reference/data/onehot/) del paquete [OneHotArrays](https://fluxml.ai/Flux.jl/) para recodificar una variable categórica en una colección de columnas binarias.
     :::
 
-    :::{.callout-tip collapse="true"}
+    ::: {.callout-tip collapse="true"}
     ## Solución
+
     ```{julia}
     using OneHotArrays
     codificacion = permutedims(onehotbatch(df.grupo, unique(df.grupo)))
@@ -300,56 +344,55 @@ a.  Recodificar la variable `grupo` en una colección de columnas binarias.
     :::
 :::
 
-
 ## Ejercicios propuestos
 
-:::{#exr-preprocesaimento-5}
+::: {#exr-preprocesaimento-5}
 El fichero [`vinos.csv`](datos/vinos.csv) contiene información sobre las características de una muestra de vinos portugueses de la denominación "Vinho Verde". Las variables que contiene son:
 
-| Variable             | Descripción                                                           | Tipo (unidades)        |
-|----------------------------------------|-----------------------------------------------------------------------|------------------------|
-| tipo                 | Tipo de vino                                                          | Categórica (blanco, tinto) |
-| meses.barrica        | Mesesde envejecimiento en barrica                               | Numérica(meses)  |
-| acided.fija          | Cantidadde ácidotartárico                                 | Numérica(g/dm3)  |
-| acided.volatil       | Cantidad de ácido acético                                             | Numérica(g/dm3)  |
-| acido.citrico        | Cantidad de ácidocítrico                                        | Numérica(g/dm3)  |
-| azucar.residual      | Cantidad de azúcarremanente después de la fermentación          | Numérica(g/dm3)  |
-| cloruro.sodico       | Cantidad de clorurosódico                                       | Numérica(g/dm3)  |
-| dioxido.azufre.libre | Cantidad de dióxido de azufreen formalibre                | Numérica(mg/dm3) |
+| Variable | Descripción | Tipo (unidades) |
+|--------------------|------------------------------------|-----------------|
+| tipo | Tipo de vino | Categórica (blanco, tinto) |
+| meses.barrica | Mesesde envejecimiento en barrica | Numérica(meses) |
+| acided.fija | Cantidadde ácidotartárico | Numérica(g/dm3) |
+| acided.volatil | Cantidad de ácido acético | Numérica(g/dm3) |
+| acido.citrico | Cantidad de ácidocítrico | Numérica(g/dm3) |
+| azucar.residual | Cantidad de azúcarremanente después de la fermentación | Numérica(g/dm3) |
+| cloruro.sodico | Cantidad de clorurosódico | Numérica(g/dm3) |
+| dioxido.azufre.libre | Cantidad de dióxido de azufreen formalibre | Numérica(mg/dm3) |
 | dioxido.azufre.total | Cantidadde dióxido de azufretotal en forma libre o ligada | Numérica(mg/dm3) |
-| densidad             | Densidad                                                              | Numérica(g/cm3)  |
-| ph                   | pH                                                                    | Numérica(0-14)   |
-| sulfatos             | Cantidadde sulfato de potasio                                   | Numérica(g/dm3)  |
-| alcohol              | Porcentajede contenidode alcohol                          | Numérica(0-100)  |
-| calidad              | Calificación otorgada porun panel de expertos                   | Numérica(0-10)   |
+| densidad | Densidad | Numérica(g/cm3) |
+| ph | pH | Numérica(0-14) |
+| sulfatos | Cantidadde sulfato de potasio | Numérica(g/dm3) |
+| alcohol | Porcentajede contenidode alcohol | Numérica(0-100) |
+| calidad | Calificación otorgada porun panel de expertos | Numérica(0-10) |
 
 a.  Crear un data frame con los datos de los vinos a partir del fichero [`vinos.csv`](datos/vinos.csv).
 
-a.  Obtener el número de valores perdidos en cada columna.
+b.  Obtener el número de valores perdidos en cada columna.
 
-a.  Imputar los valores perdidos del alcohol con la media de los valores no perdidos para cada tipo de vino.
+c.  Imputar los valores perdidos del alcohol con la media de los valores no perdidos para cada tipo de vino.
 
-a.  Crear la variable categórica `Envejecimiento` recodificando la variable `meses.barrica` en las siguientes categorías.
+d.  Crear la variable categórica `Envejecimiento` recodificando la variable `meses.barrica` en las siguientes categorías.
 
-    | Rango en meses | Categoría |
-    |:-|:-|
-    | Menos de 3 | Joven |
-    | Entre 3 y 12 | Crianza |
-    | Entre 12 y 18 | Reserva |
-    | Más de 18 | Gran reserva |
+    | Rango en meses | Categoría    |
+    |:---------------|:-------------|
+    | Menos de 3     | Joven        |
+    | Entre 3 y 12   | Crianza      |
+    | Entre 12 y 18  | Reserva      |
+    | Más de 18      | Gran reserva |
 
-a.  Crear la variable categórica `Dulzor` recodificando la variable `azucar.residual` en las siguientes categorías.
+e.  Crear la variable categórica `Dulzor` recodificando la variable `azucar.residual` en las siguientes categorías.
 
-    | Rango azúcar | Categoría |
-    |:-|:-|
-    | Menos de 4 | Seco |
-    | Más de 4 y menos de 12 | Semiseco |
+    | Rango azúcar            | Categoría |
+    |:------------------------|:----------|
+    | Menos de 4              | Seco      |
+    | Más de 4 y menos de 12  | Semiseco  |
     | Más de 12 y menos de 45 | Semidulce |
-    | Más de 45 | Dulce |
+    | Más de 45               | Dulce     |
 
-a.  Filtrar el conjunto de datos para quedarse con los vinos Reserva o Gran Reserva con una calidad superior a 7 y ordenar el data frame por calidad de forma descendente.
+f.  Filtrar el conjunto de datos para quedarse con los vinos Reserva o Gran Reserva con una calidad superior a 7 y ordenar el data frame por calidad de forma descendente.
 
-a.  ¿Cuántos vinos blancos con un contenido en alcohol superior al 12% y una calidad superior a 8 hay en el conjunto de datos?
+g.  ¿Cuántos vinos blancos con un contenido en alcohol superior al 12% y una calidad superior a 8 hay en el conjunto de datos?
 
-a.  ¿Cuáles son los 10 mejores vinos tintos crianza secos?
+h.  ¿Cuáles son los 10 mejores vinos tintos crianza secos?
 :::

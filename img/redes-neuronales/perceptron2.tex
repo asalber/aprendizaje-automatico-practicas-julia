@@ -1,0 +1,42 @@
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    neuron/.style={circle, draw, minimum size=1cm},
+    input/.style={rectangle, draw, minimum size=0.5cm, fill=green!20},
+    output/.style={rectangle, draw, minimum size=0.5cm, fill=red!20},
+    weight/.style={font=\small, midway, above, sloped}
+]
+
+% Input neurons
+\node[input] (in1) {1};
+\node[input, below of=in1] (in2) {$x_1$};
+\node[input, below of=in2] (in3) {$x_2$};
+
+% Output neuron
+\node[neuron, right=2cm of in2] (out) {\Large $\sum$};
+
+% Connect inputs to output
+\draw[-{Latex[length=2mm]}] (in1) -- (out) node[weight] {$w_0$};
+\draw[-{Latex[length=2mm]}] (in2) -- (out) node[weight] {$w_1$};
+\draw[-{Latex[length=2mm]}] (in3) -- (out) node[weight] (w2) {$w_2$};
+
+% Activation function
+\node[neuron, right=1cm of out] (activation) {$f(x)$};
+\draw[-{Latex[length=2mm]}] (out) -- (activation);
+\begin{scope}[xshift=4.8cm, yshift=-1.5cm, scale=1]
+    \addaxes;
+    % flexible selection of activation function
+    % \relu
+    \stepfunc;
+\end{scope};
+
+% Output function 
+\node[output, right=1cm of activation] (output) {$y$};
+\draw[-{Latex[length=2mm]}] (activation) -- (output);
+
+% Etiquetas
+\node[left=5mm of in2, rotate=90, anchor=north] {Entradas};
+\node[below=2mm of output] {Salida};
+\node[below=2mm of w2] {Pesos};
+\node[below=2mm of out, align=center] {Suma\\ponderada};
+\node[below=2mm of activation, align=center] {Función de\\activación};
+\end{tikzpicture}

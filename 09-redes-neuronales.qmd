@@ -1,0 +1,783 @@
+---
+title: Redes de neuronas artificiales
+lang: es
+---
+
+Las redes de neuronas artificiales son un modelo computacional inspirado en el funcionamiento del cerebro humano. Una neurona artificial es una unidad de cómputo bastante simple, que recibe una serie de entradas, las procesa y produce una salida. La salida de una neurona puede ser la entrada de otra neurona, formando así una red de neuronas interconectadas, donde cada conexión tiene un peso asociado. Es esta red, que a veces contiene miles y millones de neuronas, la que dota de gran potencia de cálculo a este modelo, siendo capaces de aprender patrones de datos muy complejos, como imágenes, texto o sonido, y por tanto, se utilizan a menudo en tareas de clasificación o regresión.
+
+El aprendizaje en una red neuronal consiste en ajustar los pesos de las conexiones para minimizar el error entre la salida predicha y la salida real. Este proceso se realiza mediante algoritmos de optimización, como el del gradiente descendente que ya se vio en el capítulo de regresión.
+
+## Ejercicios Resueltos
+
+Para la realización de esta práctica se requieren los siguientes paquetes:
+
+```julia
+using CSV  # Para la lectura de archivos CSV.
+using DataFrames  # Para el manejo de datos tabulares.
+using GLMakie  # Para el dibujo de gráficas.
+using MLJ # Para la creación y entrenamiento de modelos de aprendizaje automático.
+using Flux # Para la creación y entrenamiento de redes neuronales.
+using MLJFlux # Interfaz de Flux para MLJ.
+using Optimisers # Para la optimización de funciones.
+using Statistics # Para las funciones de coste.
+```
+
+:::{#exr-redes-neuronales-1}
+El conjunto de datos [`viviendas.csv`](/datos/viviendas.csv) contiene información sobre el precio de venta de viviendas en una ciudad.
+
+a.  Cargar los datos del archivo  [`viviendas.csv`](https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/viviendas.csv) en un data frame.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+    ```{julia}
+    using CSV, DataFrames
+    # Creamos un data frame a partir del archivo CSV.
+    df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/viviendas.csv"), DataFrame)
+    # Mostramos las primeras cinco filas del data frame.
+    first(df, 5)
+    ```
+    :::
+
+a.  Extraer las columnas `area` y `precio` del data frame y convertirlas a un vector de tipo `Float32`. Pasar el precio a miles de euros.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Extraemos las columnas area y precio.
+    X = Float32.(df.area)
+    y = Float32.(df.precio) ./ 1000
+    ```
+    :::
+
+
+a.  Dibujar un diagrama de dispersión entre el precio y el area de las viviendas.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using GLMakie
+    fig = Figure()
+    ax = Axis(fig[1, 1], title = "Precio vs Area", xlabel = "Área (m²)", ylabel = "Precio (€)")
+    scatter!(ax, X, y)
+    fig
+    ```
+    :::
+
+a.  Construir un modelo lineal simple usando un perceptrón como el de la figura, tomando como función de activación la función identidad.
+
+    ![Perceptrón de una sola entrada.](img/redes-neuronales/perceptron1){ width=400}.
+
+    Inicializar los parámetros del modelo a 0 y dibujarlo en el diagrama de dispersión.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Definimos el modelo lineal.
+    perceptron(W, b, x) = @. W[1] * x + b[1]
+    # Inicializamos los pesos y el término independiente.
+    W = Float32[0]
+    b = Float32[0]
+    lines!(ax, X, perceptron(W, b, X), label = "Modelo 0", color = :red)
+    fig
+    ```
+    :::
+
+a.  Aplicar el modelo a los datos y calcular el error cuadrático medio del modelo.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Statistics
+    # Definimos la función de coste.
+    coste(W, b, X, y) = mean((y .- perceptron(W, b, X)).^2)
+    # Calculamos el coste del modelo inicial.
+    println("Error cuadrático medio: ", coste(W, b, X, y))
+    ```
+    Se observa que el error cuadrático medio es bastante alto, lo que indica que el modelo no se ajusta bien a los datos.
+    :::
+
+a.  ¿En qué dirección deben modificarse los parámetros del modelo para reducir el error cuadrático medio? Actualizar los parámetros del modelo en esa dirección utilizando una tasa de aprendizaje $\eta = 10^{-9}$. Comprobar que el error cuadrático medio ha disminuido con los nuevos parámetros.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Los parámetros deben modificarse en la dirección en la que más rápidamente decrezca el error cuadrático medio. Esta dirección está dada por el gradiente del error cuadrático respecto a los parámetros, que se puede calcular como:
+    
+    $$ 
+    \nabla E(W, b) = \left( \frac{\partial E}{\partial W}, \frac{\partial E}{\partial b} \right). 
+    $$
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+    ```{julia}
+    using Flux
+    # Declaramos los pesos como variables simbólicas
+
+    # Calculamos el gradiente del coste.
+    ∂E_∂W, ∂E_∂b = gradient(coste, W, b, X, y)
+    # Mostramos el gradiente.
+    println("Gradiente del coste: ($∂E_∂W, $∂E_∂b)")
+    # Definimos la tasa de aprendizaje.
+    η = 1e-8
+    # Mostramos los parámetros iniciales.
+    println("Parámetros iniciales: W = $W, b = $b")
+    # Actualizamos los parámetros en la dirección de
+    W -= η * ∂E_∂W
+    b -= η * ∂E_∂b
+    # Mostramos los nuevos parámetros.
+    println("Nuevos parámetros: W = $W, b = $b")
+    # Comprobamos que el error cuadrático medio ha disminuido.
+    println("Error cuadrático medio: ", coste(W, b, X, y))
+    # Dibujamos el nuevo modelo en el diagrama de dispersión.
+    lines!(ax, X, perceptron(W, b, X), label = "Modelo 1")
+    fig
+    ```
+    :::
+
+a.  Definir una función para entrenar el perceptrón modificando los pesos en la dirección opuesta al gradiente del error cuadrático medio. 
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    function entrenar_perceptron!(W, b, X, y, η)
+        """
+        Función para entrenar el perceptrón.
+        W: peso del modelo.
+        b: término independiente del modelo.
+        X: vector de entradas.
+        y: vector de salidas.
+        η: tasa de aprendizaje.
+        """
+        # Calculamos el gradiente del coste.
+        ∂E_∂W, ∂E_∂b = gradient(coste, W, b, X, y)
+        # Actualizamos los parámetros en la dirección opuesta al gradiente.
+        W .-= η * ∂E_∂W
+        b .-= η * ∂E_∂b
+    end
+    ```
+    :::
+
+a.  Usar la función anterior para entrenar el perceptrón y repetir el proceso durante 9 iteraciones más. Dibujar los modelos actualizados en el diagrama de dispersión.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Repetimos el proceso de entrenamiento del perceptrón.
+    for i = 2:10
+        entrenar_perceptron!(W, b, X, y, η)
+        # Mostramos los parámetros y el coste del modelo.
+        ecm = coste(W, b, X, y)
+        println("Iteración ", i, ", Parámetros: W = $W, b = $b, Coste: $ecm")
+        # Dibujamos el modelo actualizado en el diagrama de dispersión.
+        lines!(ax, X, perceptron(W, b, X), label = "Modelo $i")
+    end
+    axislegend(ax)
+    fig
+    ```
+    :::
+
+
+a.  Definir de nuevo el perceptrón como una red neuronal de una sola capa con una entrada y una salida con el paquete [`Flux.jl`](https://fluxml.ai/Flux.jl) y mostrar los parámetros iniciales del modelo.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Utilizar la función [`Dense(n => m)`](https://fluxml.ai/Flux.jl/stable/reference/models/layers/#Flux.Dense) del paquete [`Flux.jl`](https://fluxml.ai/Flux.jl) para definir una capa de $m$ neuronas con $n$ entradas cada una. Por defecto la función de activación es la identidad.
+
+    Flux inicializa los pesos de las conexiones de forma aleatoria y el término independiente a cero.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+    ```{julia}
+    # Definimos una capa con una sola neurona con una entrada.
+    modelo = Dense(1 => 1)
+    # Mostramos los parámetros del modelo.
+    println("Pesos: ", modelo.weight, ", Término independiente: ", modelo.bias)
+    ```
+    :::
+
+a.  Calcular las predicciones de los precios de las viviendas con el modelo inicial.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Para obtener las salidas de una red neuronal definida con Flux, debe pasarse al modelo una matriz con las entradas, donde cada columna es un caso. Para convertir el vector de las areas en una matriz de una sola fila se puede usar la función [`reshape`](https://docs.julialang.org/en/v1/base/arrays/#Base.reshape).
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Convertimos el vector de las areas en una matriz de una sola fila.
+    X = reshape(X, 1, length(X))
+    ŷ = modelo(X)
+    ```
+    :::
+
+
+a.  Definir una función de coste que calcule el error cuadrático medio entre la salida del modelo y la salida real usando el paquete [`Flux.jl`](https://fluxml.ai/Flux.jl). Calcular el coste del modelo inicial.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`Flux.mse`](https://fluxml.ai/Flux.jl/stable/reference/models/losses/#Flux.Losses.mse) para calcular el error cuadrático medio entre la salida del modelo y la salida real.
+
+    Para calcular el coste de un modelo en Flux, el vector con las etiquetas también debe ser una matriz de una fila.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Convertimos el vector de los precios en una matriz de una sola columna.
+    y = reshape(y, 1, length(y))
+    # Definimos la función de coste como el error cuadrático medio.
+    coste(modelo, X, y) = Flux.mse(modelo(X),y)
+    coste(modelo, X, y)
+    ```
+    :::
+
+a.  Definir una función para entrenar el modelo con y usarla para entrenar el modelo hasta que la reducción en el error cuadrático medio sea menor del $0.01$%. ¿Cuántas iteraciones hacen falta? ¿Cuál es el coste del último modelo? Dibujar el coste en cada iteración.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    function entrenar_modelo!(modelo, coste, X, y, η)
+        """
+        Función para entrenar el modelo.
+        modelo: modelo a entrenar.
+        coste: función de coste.
+        X: matriz de entradas.
+        y: matriz de salidas.
+        η: tasa de aprendizaje.
+        """
+        # Calculamos el gradiente del coste.
+        ∇ = gradient(coste, modelo, X, y)
+        # Actualizamos los parámetros del modelo en la dirección opuesta al gradiente.
+        @. modelo.weight = modelo.weight - η * ∇[1].weight
+        @. modelo.bias = modelo.bias - η * ∇[1].bias
+    end
+    # Creamos un vector para guardar los costes del proceso de entrenamiento.
+    costes = [coste(modelo, X, y)]
+    reduccion_coste = Inf
+    iteraciones = 0
+    # Iteramos el proceso de aprendizaje hasta que la reducción del coste sea menor del 0.01%.
+    while reduccion_coste > 0.0001
+        iteraciones += 1
+        entrenar_modelo!(modelo, coste, X, y, η)
+        # Calculamos el nuevo coste y lo añadimos al vector de costes.
+        push!(costes, coste(modelo, X, y))
+        # Calculamos la reducción del coste.
+        reduccion_coste = abs((costes[end] - costes[end-1]) / costes[end])
+    end
+    # Mostramos el número de iteraciones y el coste final.
+    println("Número de iteraciones: ", iteraciones)
+    println("Coste final: ", costes[end])
+    # Dibujamos el coste en cada iteración.
+    fig2 = Figure()
+    ax2 = Axis(fig2[1, 1], title = "Evolución del coste en el entrenamiento", xlabel = "Iteraciones", ylabel = "Coste")
+    lines!(ax2, 0:iteraciones, costes)
+    fig2
+    ```
+    :::
+
+a.  Mostrar el modelo final en el diagrama de dispersión y compararlo con el último modelo obtenido con el perceptrón.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Dibujamos el modelo final en el diagrama de dispersión.
+    lines!(ax, vec(X), vec(modelo(X)), label = "Modelo final", color = :red, linewidth = 2)
+    fig
+    ```
+
+    Se observa que el modelo final prácticamente coincide con el último modelo obtenido con el perceptrón, lo que indica que ambos modelos son equivalentes.
+    :::
+
+a.  Crear una red neuronal para predecir el precio de las viviendas usando todas las características de las viviendas y mostrar los pesos y el término independiente del modelo.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Ahora el modelo tiene que tener tantas entradas como características tenga el conjunto de datos, en este caso 12 características de entrada y una salida para el precio.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+    ```{julia}
+    # Definimos el modelo con 12 entradas y 1 salida.
+    modelo = Dense(12 => 1)
+    # Mostramos los parámetros del modelo.
+    println("Pesos: ", modelo.weight, ", Término independiente: ", modelo.bias)
+    ```
+    :::
+
+a.  Extraer las características de entrada del conjunto de datos y convertir las que sean cualitativas en cuantitativas. 
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`coerce!`](https://juliaai.github.io/MLJScientificTypes.jl/dev/#MLJScientificTypes.coerce) del paquete [`MLJScientificTypes.jl`](https://juliaai.github.io/MLJScientificTypes.jl/dev/) para convertir los tipos de las columnas del data frame.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using MLJ
+    # Extraemos las etiquetas.
+    y = Float32.(df.precio / 1000)
+    # Extraemos las características de entrada.
+    X = select(df, Not(:precio))
+    # Convertimos las columnas cualitativas en cuantitativas.
+    schema(X)
+    ```
+
+    Las columnas `calleprincipal`, `huespedes`, `sotano`, `calentador`, `climatizacion`, `centrico` y `amueblado` son cualitativas y deben convertirse a cuantitativas. 
+
+    ```{julia}
+    # Convertimos las columnas de tipo texto a tipo categórico.
+    coerce!(X, Textual => Multiclass)
+    # Convertimos las columnas categóricas a tipo numérico.
+    coerce!(X, Multiclass => Count)
+    # Convertimos las columnas de tipo Int64 a tipo Int32 para ganar eficiencia.
+    X = Float32.(X)
+    # Observamos el nuevo esquema del data frame.
+    schema(X)
+    ```
+    :::
+
+a.  Convertir el data frame a una matriz, transponerla y normalizar los datos.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Cuando se trabaja con variables de entrada de diferentes escalas, es recomendable normalizarlas para que todas tengan la misma importancia en el modelo. Para ello, se puede usar la función [`normalise`](https://fluxml.ai/Flux.jl/stable/reference/models/layers/#Flux.normalise) del paquete [`Flux.jl`](https://fluxml.ai/Flux.jl) para normalizar los datos.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Convertimos el data frame a una matriz y la transponemos.
+    X = Matrix(X)'
+    X = Flux.normalise(X)
+    y = y'
+    # Definimos como función de coste el error cuadrático medio.
+    coste(modelo, X, y) = Flux.mse(modelo(X), y)
+    # Calculamos el coste del modelo inicial.
+    println("Error cuadrático medio: ", coste(modelo, X, y))
+    ```
+    :::
+
+a.  Definir una función para entrenar el modelo con y usarla para entrenar el modelo hasta que la reducción en el error cuadrático medio sea menor de $10^{-4}$. ¿Cuántas iteraciones hacen falta? ¿Cuál es el coste del último modelo? Dibujar el coste en cada iteración. ¿Es mejor modelo que el percetrón?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    function entrenar_modelo!(modelo, coste, X, y, η)
+        """
+        Función para entrenar el modelo.
+        modelo: modelo a entrenar.
+        coste: función de coste.
+        X: matriz de entradas.
+        y: matriz de salidas.
+        η: tasa de aprendizaje.
+        """
+        # Calculamos el gradiente del coste.
+        ∇ = gradient(coste, modelo, X, y)
+        # Actualizamos los parámetros del modelo en la dirección opuesta al gradiente.
+        @. modelo.weight = modelo.weight - η * ∇[1].weight
+        @. modelo.bias = modelo.bias - η * ∇[1].bias
+    end
+    # Definimos la tasa de aprendizaje.
+    η = 1e-2
+    # Creamos un vector para guardar los costes del proceso de entrenamiento.
+    costes = [coste(modelo, X, y)]
+    reduccion_coste = Inf
+    iteraciones = 0
+    # Iteramos el proceso de aprendizaje hasta que la reducción del coste sea menor del 0.01%.
+    while reduccion_coste > 1e-4
+        iteraciones += 1
+        entrenar_modelo!(modelo, coste, X, y, η)
+        # Calculamos el nuevo coste y lo añadimos al vector de costes.
+        push!(costes, coste(modelo, X, y))
+        # Calculamos la reducción del coste.
+        reduccion_coste = abs((costes[end] - costes[end-1]))
+    end
+    # Mostramos el número de iteraciones y el coste final.
+    println("Número de iteraciones: ", iteraciones)
+    println("Coste final: ", costes[end])
+    ```
+
+    Ahora dibujamos la evolución del coste con las iteraciones en el entrenamiento.
+
+    ```{julia}
+    # Dibujamos el coste en cada iteración.
+    fig3 = Figure()
+    ax3 = Axis(fig3[1, 1], title = "Evolución del coste en el entrenamiento", xlabel = "Iteraciones", ylabel = "Coste")
+    lines!(ax3, 0:iteraciones, costes)
+    fig3
+    ```
+
+    El coste final es menor que el del perceptrón, lo que indica que el modelo es mejor.
+
+    Finalmente, mostramos los parámetros del modelo entrenado.
+
+    ```{julia}
+    # Mostramos los pesos y el término independiente del modelo.
+    println("Pesos: ", modelo.weight, ", Término independiente: ", modelo.bias)
+    ```
+    :::
+:::
+
+:::{#exr-redes-neuronales-2}
+El conjunto de datos [pingüinos.csv](datos/pingüinos.csv) contiene un conjunto de datos sobre tres especies de pingüinos con las siguientes variables:
+
+- Especie: Especie de pingüino, comúnmente Adelie, Chinstrap o Gentoo.
+- Isla: Isla del archipiélago Palmer donde se realizó la observación.
+- Longitud_pico: Longitud del pico en mm.
+- Profundidad_pico: Profundidad del pico en mm
+- Longitud_ala: Longitud de la aleta en mm.
+- Peso: Masa corporal en gramos.
+- Sexo: Sexo
+
+a.  Cargar los datos del archivo [`pinguïnos.csv`](https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/pingüinos.csv) en un data frame.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using CSV, DataFrames
+    df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/pingüinos.csv"), DataFrame, missingstring="NA")
+    first(df, 5)
+    ```
+    :::
+
+a.  Seleccionar las columnas `Longitud_pico`, `Profundidad_pico`, `Longitud_ala` y `Especie` del data frame.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Seleccionamos las columnas Longitud_pico, Profundidad_pico, Longitud_ala y Especie.
+    select!(df, [:Longitud_pico, :Profundidad_pico, :Longitud_ala, :Especie])
+    first(df, 5)
+    ```
+    :::
+
+a.  Hacer un análisis de los datos perdidos en el data frame. 
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    describe(df, :nmissing)
+    ```
+    :::
+
+a.  Eliminar del data frame los casos con valores perdidos.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    dropmissing!(df)
+    ```
+    :::
+
+a.  Mostrar los tipos de datos científicos de cada columna del data frame.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función `schema` del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/).
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using MLJ
+    schema(df)
+    ```
+    :::
+
+a.  Convertir las columnas `Longitud_pico`, `Profundidad_pico`, `Longitud_ala` a tipo científico `Continuous` y la columna `Especie` a tipo `Multiclass`.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`coerce!`](https://juliaai.github.io/MLJ.jl/stable/preparing_data/#MLJBase.coerce!) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para transformar las variables categóricas en variables numéricas.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Convertimos la longitud del ala a tipo científico continuo.
+    coerce!(df, :Longitud_ala => Continuous)
+    # Convertimos la columna Especie a tipo Multiclass.
+    coerce!(df, Textual => Multiclass)
+    # Mostramos el nuevo esquema del data frame.
+    schema(df)
+    ```
+    :::
+
+a.  Dividir el data frame en dos partes, una con las variables de entrada y otra con la variable de salida (`Especie`).
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`unpack`](https://juliaai.github.io/MLJ.jl/stable/preparing_data/#MLJBase.unpack) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para dividir el data frame en dos partes, una con las columnas de entrada del modelo y otra con la columna de salida.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    y, X = unpack(df, ==(:Especie), name -> true);
+    ```
+    :::
+
+a.  Crear un modelo de red neuronal con la siguiente estructura.
+    
+    - Capa de entrada con 3 neuronas (una por cada variable de entrada).
+    - Una capa oculta con 6 neuronas y función de activación `relu`.
+    - Capa de salida con 3 neuronas (una por cada especie de pingüino) y función de activación `softmax`.
+
+    Usar el algoritmo de aprendizaje `Adam` (Adaptative Moment Estimation) con una tasa de aprendizaje de $0.01$. Introducir en el modelo 0 etapas (epochs) de entrenamiento, para trabajar con los pesos aleatorios iniciales. 
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Cargar el constructor de modelos de redes neuronales  [`NeuralNetworkClassifier`](https://juliaai.github.io/MLJ.jl/stable/models/NeuralNetworkClassifier_MLJFlux/) del paquete [`MLJFlux`](https://juliaai.github.io/MLJFlux.jl/stable/) e inicializarlo con los siguientes parámetros:
+
+    - `builder`: Permite definir el tipo de red neuronal. En este caso, usar la función [`MLP`](https://juliaai.github.io/MLJFlux.jl/stable/#MLJFlux.MLP) (Multi Layer Perceptron) para crear el modelo de red neuronal. Indicar el número de neuronas de las capas ocultas con `hidden` y la función de activación con `σ`.
+    - `optimiser`: Permite definir el optimizador, es decir, el algoritmo de aprendizaje. En este caso usar el optimizador [`Adam`](https://fluxml.ai/Flux.jl/stable/optimisers/#Flux.Optimise.Adam) del paquete [`Optimisers.jl`](https://juliaai.github.io/Optimisers.jl/stable/) con una tasa de aprendizaje de $0.01$.
+    - `batch_size`: Tamaño del lote de entrenamiento. En este caso usar un tamaño de 10.
+    - `epochs`: Número de etapas de entrenamiento. En este caso usar 0.
+    - `acceleration`: Permite usar la aceleración de la GPU si se dispone de tarjeta gráfica. Normalmente `CUDALibs()`. 
+
+    Usar la función [`machine`](https://juliaai.github.io/MLJ.jl/stable/machines/#MLJBase.machine) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para crear una máquina de aprendizaje con el modelo y los datos.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Flux, MLJFlux, Optimisers
+    # Cargamos el código que define las redes neuronales.
+    RedNeuronal = @load NeuralNetworkClassifier pkg = "MLJFlux"
+    # Creamos un modelo de red neuronal con los parámetros por defecto.
+    modelo = RedNeuronal(
+        builder = MLJFlux.MLP(; hidden = (6,), σ = relu),
+        optimiser=Optimisers.Adam(0.01),
+        batch_size = 10,
+        epochs = 0,
+        # acceleration = CUDALibs()         # Para utilizar targetas gráficas GPU
+        )
+    # Creamos una máquina de aprendizaje con el modelo y los datos.
+    mach = machine(modelo, X, y)
+    ```
+    :::
+
+a.  Dividir el conjunto de datos en un conjunto de entrenamiento con el 70% de los ejemplos y otro de prueba con el 30% restante.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`partition`](https://juliaai.github.io/MLJ.jl/stable/preparing_data/#MLJBase.partition) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para dividir el conjunto de datos en un conjunto de entrenamiento y otro de prueba.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Dividimos el conjunto de datos en un conjunto de entrenamiento y otro de prueba.
+    train, test = partition(eachindex(y), 0.7, shuffle=true, rng=123)
+    ```
+    :::
+
+a.  Entrenar el modelo con el conjunto de ejemplos de entrenamiento y predecir la especie de los pingüinos del conjunto de prueba. Calcular la matriz de confusión y la precisión del modelo y la entropía cruzada.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`fit!`](https://juliaai.github.io/MLJ.jl/stable/machines/#MLJBase.fit!) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para entrenar el modelo con el conjunto de entrenamiento. 
+    
+    Para predecir la especie de los pingüinos del conjunto de prueba, usar la función [`predict`](https://juliaai.github.io/MLJ.jl/stable/machines/#MLJBase.predict) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/). 
+    
+    Para calcular la matriz de confusión, usar la función [`confusion_matrix`](https://juliaai.github.io/StatisticalMeasures.jl/dev/auto_generated_list_of_measures/#StatisticalMeasures.ConfusionMatrix) del paquete [`StatisticalMeasures`](https://juliaai.github.io/StatisticalMeasures.jl/dev/).
+    
+    Usar la función [`accuracy`](https://juliaai.github.io/StatisticalMeasures.jl/dev/auto_generated_list_of_measures/#StatisticalMeasures.Accuracy) del paquete [`StatisticalMeasures`](https://juliaai.github.io/StatisticalMeasures.jl/dev/).
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia} 
+    # Entrenamos el modelo con el conjunto de entrenamiento.
+    fit!(mach, rows = train)
+    # Predecimos las probabilidades de cada ejemplo de pertenecer a cada clase.
+    ŷ = predict(mach, rows = test)
+    ```
+
+    Obtenemos distribuciones de probabilidad. La predicciones son las clases con mayor probabilidad.
+
+    ```{julia}
+    # Obtenemos la clase más probable.
+    mode.(ŷ)
+    ```
+    A continuación obtenemos la matriz de confusión.
+
+    ```{julia}
+    # Calculamos la matriz de confusión.
+    cm = confusion_matrix(y[test], mode.(ŷ))
+    ```
+
+    Finalmente calculamos la precisión del modelo y la entropía cruzada.
+
+    ```{julia}
+    # Calculamos la precisión del modelo.
+    precision = sum(mode.(ŷ) .== y[test]) / length(test)
+    # O directamente usando la función accuracy
+    accuracy(mode.(ŷ), y[test])
+    println("Precisión del modelo: ", precision)
+    # Calculamos la entropía cruzada.
+    println("Entropía cruzada: ", cross_entropy(ŷ, y[test]))
+    ```
+    :::
+
+a.  Entrenar el modelo durante 100 etapas y evaluar de nuevo la precisión del modelo y la entropía cruzada. ¿Ha mejorado el modelo?
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`evaluate`](https://juliaai.github.io/MLJ.jl/stable/evaluating_model_performance/#MLJBase.evaluate!) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para evaluar el modelo. Los parámetros más importantes de esta función son:
+
+    - `resampling`: Indica el método de muestreo para definir los conjuntos de entrenamiento y test. Los métodos más habituales son:
+        - `Holdout(fraction_train = p)`: Divide el conjunto de datos tomando una proporción de $p$ ejemplos en el conjunto de entrenamiento y $1-p$ en el conjunto de test.
+        - `CV(nfolds = n, shuffle = true|false)`: Utiliza validación cruzada con `n` iteraciones. Si se indica `shuffle = true`, se utiliza validación cruzada aleatoria.
+        - `StratifiedCV(nfolds = n, shuffle = true|false)`: Utiliza validación cruzada estratificada con `n` iteraciones. Si se indica `shuffle = true`, se utiliza validación cruzada estratificada aleatoria.
+        - `InSample()`: Utiliza el conjunto de entrenamiento como conjunto de test.
+  
+    - `measures`: Indica las métricas a utilizar para evaluar el modelo. Las métricas más habituales son:
+        - `cross_entropy`: Pérdida de entropía cruzada.
+        - `confusion_matrix`: Matriz de confusión.
+        - `true_positive_rate`: Tasa de verdaderos positivos.
+        - `true_negative_rate`: Tasa de verdaderos negativos.
+        - `ppv`: Valor predictivo positivo.
+        - `npv`: Valor predictivo negativo.
+        - `accuracy`: Precisión.
+    
+        Se puede indicar más de una en un vector.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Definimos el número de épocas de entrenamiento.
+    modelo.epochs = 100
+    # Actualizamos la máquina de aprendizaje con el nuevo modelo.
+    mach = machine(modelo, X, y)
+    # Entrenamos el modelo con el conjunto de entrenamiento y evaluamos el modelo.
+    evaluate!(mach, resampling = Holdout(fraction_train = 0.7, rng = 123), measure = [accuracy, cross_entropy])
+    ```
+
+    La precisión del modelo es muy baja. Esto puede deberse a que la estructura de la red neuronal no es la adecuada, o a que las variables de entrada no están normalizadas.
+    :::
+
+a.  Estandarizar las variables de entrada y volver a entrenar el modelo una sola etapa. Evaluar la precisión del modelo y la entropía cruzada.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`Standardizer`](https://juliaai.github.io/MLJ.jl/stable/transformers/#MLJModels.Standardizer) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para estandarizar las variables de entrada. La estandarización consiste en restar la media y dividir por la desviación típica de cada variable.
+
+    Usar el operador de tubería [`|>`](https://docs.julialang.org/en/v1/manual/functions/#man-pipe-operator) para encadenar la estandarización y la red neuronal en un modelo.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Definimos la transformación de estandarización.
+    estandarizacion = Standardizer()
+    # Definimos de nuevo la red neuronal.
+    red = RedNeuronal(
+        builder = MLJFlux.MLP(; hidden = (6,), σ = relu),
+        optimiser = Optimisers.Adam(0.01),
+        batch_size = 10,
+        epochs = 1
+        )
+    # Definimos el modelo mediante un flujo que aplique primero la estandarización y luego la red neuronal.
+    modelo = estandarizacion  |> red
+    # Creamos una máquina de aprendizaje con el modelo y los datos.
+    mach = machine(modelo, X, y)
+    # Entrenamos el modelo con el conjunto de entrenamiento y evaluamos el modelo.
+    evaluate!(mach, resampling = Holdout(fraction_train = 0.7, rng = 123), measure = [accuracy, cross_entropy])
+    ```
+    :::
+
+a.  Volver a entrenar el modelo durante 100 etapas y evaluar de nuevo la precisión del modelo y la entropía cruzada. ¿Ha mejorado el modelo?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Definimos el número de épocas de entrenamiento.
+    red.epochs = 100
+    # Actualizamos la máquina de aprendizaje con el nuevo modelo.
+    evaluate!(mach, resampling = Holdout(fraction_train = 0.7, rng = 123), measure = [accuracy, cross_entropy])
+    ```
+
+    El modelo ha mejorado enormemente y ahora la precisión del modelo es casi del 100%. Esto indica que el modelo se ha ajustado muy bien a los datos de entrenamiento y es capaz de predecir a los datos de prueba casi a la perfección.
+    :::
+
+a.  Volver a repetir el proceso de entrenamiento y evaluación del modelo con validación cruzada de 10 pliegues y calcular la precisión del modelo y la entropía cruzada.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+    ```{julia}
+    evaluate!(mach, resampling = CV(nfolds = 10), measure = [accuracy, cross_entropy])
+    ```
+    :::
+
+a.  Volver a repetir el proceso de entrenamiento y evaluación del modelo con validación cruzada tomando distintas tasas de aprendizaje. ¿Para qué tasa de aprendizaje se obtiene el mejor modelo? ¿Cuál es la precisión del modelo y la entropía cruzada?
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`range`](https://juliaai.github.io/MLJ.jl/stable/tuning_models/#Base.range) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para definir un rango etapas. La función `range` permite definir un rango de valores para un parámetro del modelo.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Definimos un rango de tasas de aprendizaje.
+    r = range(modelo, :(neural_network_classifier.epochs), lower=1, upper=100, scale=:log)
+    # Obtenemos las precisiones para cada número de etapas.
+    _, _, etapas, entropia = learning_curve(mach, range = r, resampling = CV(nfolds = 10), measure = cross_entropy)
+    using GLMakie
+    fig = Figure()
+    ax = Axis(fig[1, 1], title = "Precisión del modelo con distintas etapas de entrenamiento", xlabel = "Etapas", ylabel = "Precisión")
+    lines!(ax, etapas, entropia)
+    display(fig)
+    # Obtenemos el número de etapas con la mejor precisión.
+    etapas_optimas = etapas[argmin(entropia)]
+    println("Número de etapas óptimas: ", etapas_optimas)
+    ```
+    :::
+
+a.  Entrenar de nuevo el modelo con todo el conjunto de ejemplos y con el número de etapas óptimas, y predecir la especie de los 5 primeros pingüinos del conjunto de ejemplos.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución 
+    ```{julia}
+    # Definimos el número de épocas de entrenamiento.
+    red.epochs = etapas_optimas
+    # Entrenamos el modelo con todo el conjunto de ejemplos.
+    fit!(mach)
+    # Predecimos la especie de los 5 primeros pingüinos del conjunto de ejemplos.
+    predict_mode(mach, X[1:5, :])
+    ```
+    :::
+:::

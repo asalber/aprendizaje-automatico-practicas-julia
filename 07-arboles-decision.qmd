@@ -14,7 +14,6 @@ using CSV  # Para la lectura de archivos CSV.
 using DataFrames  # Para el manejo de datos tabulares.
 using Tidier # Para el preprocesamiento de datos.
 using PrettyTables  # Para mostrar tablas formateadas.
-using Plots  # Para el dibujo de gráficas.
 using GLMakie  # Para obtener gráficos interactivos.
 using AlgebraOfGraphics # Para generar gráficos mediante la gramática de gráficos.
 using DecisionTree # Para construir árboles de decisión.
@@ -201,7 +200,7 @@ a.  Visualizar el árbol de decisión construido.
 :::
 
 :::{#exr-arboles-decision-2}
-El conjunto de datos [pingüinos.csv](datos/pingüinos.csv) contiene un conjunto de datos sobre tres eEspecie de pingüinos con las siguientes variables:
+El conjunto de datos [pingüinos.csv](datos/pingüinos.csv) contiene un conjunto de datos sobre tres especies de pingüinos con las siguientes variables:
 
 - Especie: Especie de pingüino, comúnmente Adelie, Chinstrap o Gentoo.
 - Isla: Isla del archipiélago Palmer donde se realizó la observación.
@@ -331,13 +330,15 @@ a.  Determinar el valor óptimo de división del conjunto de datos según la lon
     Dibujamos la reducción de la impureza en función de la longitud del pico.
 
     ```{julia}
-    using Plots
     # Valores únicos de longitud del pico.
     valores = unique(df.Longitud_pico)
     # Reducción de la impureza para cada valor.
     reducciones = [reduccion_impureza(df, :Longitud_pico, val) for val in valores]
     # Graficamos el resultado.
-    Plots.scatter(valores, reducciones, xlabel = "Longitud del pico", ylabel = "Reducción de la impureza", legend = false)
+    using GLMakie
+    fig = Figure()
+    ax = Axis(fig[1, 1], title = "Reducción de la impureza según la longitud del pico", xlabel = "Longitud del pico", ylabel = "Reducción de la impureza")
+    scatter!(ax, valores, reducciones)
     ```
 
     Y ahora obtenemos el valor óptimo de división del conjunto de datos según la longitud del pico.
@@ -497,21 +498,6 @@ a.  Hacer un análisis de los datos perdidos en el data frame.
     ```
     :::
 
-a.  Mostrar la distribución de frecuencias de las variables cuantitativas del data frame mediante histogramas.
-
-    :::{.callout-tip collapse="true"}
-    ## Solución
-
-    ```{julia}
-    using GLMakie
-    fig = Figure() 
-    ax = [Axis(fig[trunc(Int, i / 3), i % 3], title = names(df)[i+2]) for i in 0:12]
-    for i in 1:13
-        hist!(ax[i], df[!, i+1], strokewidth = 0.5, strokecolor = (:white, 0.5))
-    end
-    fig
-    ```
-    :::
 
 a.  Se considera que un vino es bueno si tiene una puntuación de calidad mayor que $6.5$. Recodificar la variable `calidad` en una variable categórica que tome el valor 1 si la calidad es mayor que $6.5$ y 0 en caso contrario.
 
@@ -525,8 +511,13 @@ a.  Se considera que un vino es bueno si tiene una puntuación de calidad mayor 
     ```
     :::
 
-a.  Descomponer el data frame en un data frame con las variables predictivas y un vector con la variable objetivo `bueno`.
+a.  Dividir el data frame en un data frame con las variables predictivas y un vector con la variable objetivo `bueno`.
 
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`unpack`](https://juliaai.github.io/MLJ.jl/stable/preparing_data/#MLJBase.unpack) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para dividir el data frame en dos partes, una con las columnas de entrada del modelo y otra con la columna de salida.
+    :::
+    
     :::{.callout-tip collapse="true"}
     ## Solución
 
@@ -536,6 +527,11 @@ a.  Descomponer el data frame en un data frame con las variables predictivas y u
     :::
 
 a.  Para poder entrenar un modelo de un arbol de decisión, las variables predictivas deben ser cuantitativas. Transmformar las variables categóricas en variables numéricas.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`coerce!`](https://juliaai.github.io/MLJ.jl/stable/preparing_data/#MLJBase.coerce!) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para transformar las variables categóricas en variables numéricas.
+    :::
 
     :::{.callout-tip collapse="true"}
     ## Solución

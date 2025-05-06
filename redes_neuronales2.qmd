@@ -1,0 +1,382 @@
+
+:::{#exr-redes-neuronales-2}
+La siguiente tabla contiene los cuatro casos que definen la conjunción lógica _AND_.
+
+| x1 | x2 | y |
+|----|----|---|
+| 0  | 0  | 0 |
+| 0  | 1  | 0 |
+| 1  | 0  | 0 |
+| 1  | 1  | 1 |
+
+a.  Crear una matriz con los valores de las entradas `x1` y `x2`, y un vector con los valores de la salida `y`.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+```{julia}
+# Definimos la matriz de las entradas.
+X = [0 0; 0 1; 1 0; 1 1]
+# Definimos el vector de las salidas.
+y = [0; 0; 0; 1]
+```
+    :::
+
+a.  Dibujar un diagrama de dispersión con los casos de la tabla de verdad de la función lógica _AND_, usando distintos colores para los valores de `y`.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+```{julia}
+using Plots
+# Dibujamos el diagrama de dispersión.
+plt = scatter(X[:, 1], X[:, 2], markercolor = y, label = "AND", legend = :outertop)
+```
+    :::
+
+a.  Crear un perceptrón simple como el de la figura, con dos entradas `x1` y `x2` e inicializar aleatoriamente los pesos de sus conexiones.
+
+    ![Perceptrón simple](img/redes-neuronales/perceptron){ width=400}
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+```{julia}
+using Random
+# Fijamos una semilla aleatoria para la reproducibilidad.
+Random.seed!(123)
+# Definimos los pesos de las conexiones de entrada.
+ws = rand(3)
+```
+    :::
+
+a.  Definir una función de activación de tipo identidad $f(x) = x$.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+```{julia}
+# Definimos la función de activación de tipo identidad.
+f(x) = x
+```
+    :::
+
+a.  Alimentar el perceptrón con el primer caso de la tabla de verdad y calcular su salida. ¿Cuál es el error cometido por el perceptrón?
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+```{julia}
+using LinearAlgebra
+# Calculamos la suma de las entradas ponderada por los pesos de sus conexiones.
+sum = dot(X[1,:], ws[2:3]) + ws[1]
+# Aplicamos la función de activación
+ŷ = f(sum)
+# Calculamos el error
+ϵ = ŷ - y[1]
+```
+    :::
+
+a.  Definir una función para calcular el error que tome como parámetros los pesos del perceptrón y calcular el error cometido por el perceptrón para el primer caso.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+```{julia}
+using Symbolics
+# Declaramos los pesos como variables simbólicas
+@variables w0 w1 w2
+# Definimos el vector de los pesos.
+W = [w0, w1, w2]
+# Definimos una función para calcular el error cuadrático.
+ε(W, X, y)  = (f(dot([1;X], W)) - y)
+# Calculamos el error cuadrático para el primer caso.
+ε(ws, X[1,:], y[1])
+```
+    :::
+
+a.  ¿En qué dirección deben modificarse los pesos del perceptrón para reducir el error cuadrático? Actualizar los pesos del perceptrón en esa dirección utilizando una tasa de aprendizaje $\eta = 0.1$. Comprobar que el error cuadrático ha disminuido con los nuevos pesos.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Los pesos deben modificarse en la dirección en la que más rápidamente decrezca el error cuadrático. Esta dirección está dada por el gradiente del error cuadrático respecto a los pesos, que se puede calcular como:
+    $$ 
+    \nabla \epsilon(W) = \left( \frac{\partial \epsilon}{\partial w_1}, \frac{\partial \epsilon}{\partial w_2}, \frac{\partial \epsilon}{\partial w_3} \right). 
+    $$
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+```{julia}
+# Definimos variables simbólicas para los valores de entrada y salida.
+@variables x[1:2] z
+# Calculamos el gradiente del error.
+grad = Symbolics.gradient(ε(W, x, z)^2/2, W) 
+# Mostramos el gradiente.
+print("Gradiente del error: ")
+display(grad)
+# Definimos una función para evaluar el gradiente.
+∇ε = eval(build_function(grad, W, [x, z])[1])
+# Calculamos el gradiente del error para el primer caso.
+∇ε1 = ∇ε(ws, [X[1,:], y[1]])
+# Definimos la tasa de aprendizaje.
+η = 0.1
+# Mostramos los pesos iniciales.
+println("Pesos iniciales: ", ws)
+# Actualizamos los pesos en la dirección de 
+ws .-= η * ∇ε1
+# Mostramos los nuevos pesos.
+println("Nuevos pesos: ", ws)
+# Comprobamos que el error cuadrático ha disminuido.
+ε(ws, X[1,:], y[1])
+```
+    :::
+
+a.  Definir una función para alimentar el perceptrón todos los casos y actualizar sus pesos para reducir el error cuadrático medio.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Como el error cuadrático es una función de los pesos, 
+
+    $$
+    \epsilon(W) = \frac{1}{2} \left( f(w_0 + w_1x_1 + w2x_2) - y \right)^2
+    $$  
+    
+    sus derivadas parciales respecto a los pesos son:
+
+    \begin{align*}
+    \frac{\partial \epsilon}{\partial w_0} &= \left( f(w_0 + w_1x_1 + w2x_2) - y \right) = \epsilon, \\
+    \frac{\partial \epsilon}{\partial w_1} &= \left( f(w_0 + w_1x_1 + w2x_2) - y \right) x_1 = \epsilon x_1, \\
+    \frac{\partial \epsilon}{\partial w_2} &= \left( f(w_0 + w_1x_1 + w2x_2) - y \right) x_2 = \epsilon x_2.
+    \end{align*}
+
+    y por tanto, el gradiente del error cuadrático respecto a los pesos es
+
+    $$
+    \nabla \epsilon(W) = \left( \epsilon, \epsilon x_1, \epsilon x_2 \right).
+    $$
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+```{julia}
+using Statistics
+function alimentar_perceptron!(W::Vector{Float64}, X, y, η)
+    """
+    Función para alimentar el perceptrón con un caso y actualizar sus pesos.
+    W: vector de pesos del perceptrón.
+    X: matriz de entradas.
+    y: vector de salida esperado.
+    α: tasa de aprendizaje.
+    """
+    # Inicializamos el gradiente del error.
+    ∇ε = zeros(length(W))
+    # Iteramos sobre cada caso de la tabla de verdad.
+    n = size(X, 1)
+    for i in 1:n
+        # Actualizamos el gradiente del error.
+        ∇ε += ε(W, X[i,:], y[i]) * [1;X[i,:]]
+    end
+    # Actualizamos los pesos del perceptrón.
+    W .-= η * (∇ε / n)
+    # Devolvemos el error cuadrático medio.
+    return mean([ε(W, X[i,:], y[i])^2 for i in 1:n])
+end
+
+alimentar_perceptron!(ws, X, y, 0.1)
+```
+    :::
+
+a.  Usar la función anterior para alimentar el perceptrón con los cuatro casos de la tabla de verdad y repetir el proceso hasta que el error cuadrático medio sea menor que $0.1$. Dibujar el modelo definido por los pesos del perceptrón en cada iteración.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+```{julia}
+@variables u, v
+ecm = 1
+etapa = 0 
+#while ecm > 0.05
+for etapa = 1:100
+    #etapa += 1
+    ecm = alimentar_perceptron!(ws, X, y, 0.1)
+    println("Etapa ", etapa, ", Pesos: ", ws, ", Error: ", ecm)
+    # Definimos la ecuación simbólica con los pesos.
+    eq = dot(ws, [1, u, v]) ~ 0 
+    # Resolvemos la ecuación en y, y dibujamos la función.
+    plot!(symbolic_linear_solve(eq, v), label = "Etapa $etapa") 
+end
+plt
+```
+    :::
+
+a.  Definir una función de activación de tipo salto o escalón, que devuelva 0 si la entrada es negativa, y 1 en caso contrario.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Definimos la función de activación de tipo escalón.
+    f(x) = x < 0 ? 0 : 1
+    ```
+    :::
+
+a.  Alimentar el perceptrón con el primer caso de la tabla de verdad y calcular su salida.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using LinearAlgebra
+    # Calculamos la suma de las entradas ponderada por los pesos de sus conexiones.
+    sum = dot(X[1,:], ws[2:3]) + ws[1]
+    # Aplicamos la función de activación
+    ŷ = f(sum)
+    ```
+    :::
+
+a.  Calcular el error cometido por el perceptrón para el primer caso.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    err = y[1] - ŷ
+    ```
+    :::
+
+a.  Actualizar los pesos del perceptrón para reducir el error. Utilizar una tasa de aprendizaje $\alpha = 0.1$.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Definimos la tasa de aprendizaje
+    α = 0.1
+    # Actualizamos los pesos
+    ws[1] += α * err
+    ws[2] += α * err * X[1, 1]
+    ws[3] += α * err * X[1, 2]
+    ```
+    :::
+
+a.  Definir una función para alimentar el perceptrón con un caso y actualizar sus pesos para reducir el error.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    function aprendizaje!(xs, y, ws, α)
+        # Calculamos la suma de las entradas ponderada por los pesos de sus conexiones.
+        sum = dot([1;xs], ws)
+        # Aplicamos la función de activación
+        ŷ = f(sum)
+        # Calculamos el error
+        err = y - ŷ
+        # Actualizamos los pesos
+        ws .+= α * err * [1;xs]
+        return abs(err)
+    end
+    ```
+    :::
+
+a.  Usar la función anterior para alimentar el perceptrón con los cuatro casos de la tabla de verdad y repetir el proceso hasta que no haya ningún error. Dibujar el modelo definido por los pesos del perceptrón en cada iteración.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using LinearAlgebra
+    using Symbolics
+    @variables u, v
+    err = 1
+    etapa = 0 
+    while err > 0
+        etapa += 1
+        err = 0
+        for i = 1:size(X, 1)
+            err += aprendizaje!(X[i,:], y[i], ws, 0.1)
+        end
+        println("Etapa ", etapa, ", Pesos: ", ws)
+        # Definimos la ecuación simbólica con los pesos.
+        eq = dot(ws, [1, u, v]) ~ 0 
+        # Resolvemos la ecuación en y, y dibujamos la función.
+        plot!(symbolic_linear_solve(eq, v), label = "Etapa $etapa") 
+    end
+    plt
+    ```
+    :::
+
+a.  Repetir el proceso anterior, pero ahora tomando como función de activación la función identidad. Utilizar en este caso el algoritmo del gradiente descendente para actualizar los pesos.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Definimos la función de activación como la identidad.
+    f(x) = x
+    # Repetimos el proceso anterior.
+    err = 1
+    etapa = 0 
+    while err > 0
+        etapa += 1
+        err = 0
+        for i = 1:size(X, 1)
+            err += aprendizaje!(X[i,:], y[i], ws, 0.1)
+        end
+        println("Etapa ", etapa, ", Pesos: ", ws)
+        # Definimos la ecuación simbólica con los pesos.
+        eq = dot(ws, [1, u, v]) ~ 0 
+        # Resolvemos la ecuación en y, y dibujamos la función.
+        plot!(symbolic_linear_solve(eq, v), label = "Etapa $etapa") 
+    end
+    plt
+    ```
+:::
+
+
+```{julia}
+using MLJ, Flux, MLJFlux
+import RDatasets
+import Optimisers
+
+# 1. Load Data
+iris = RDatasets.dataset("datasets", "iris");
+y, X = unpack(iris, ==(:Species), colname -> true, rng=123);
+
+# 2. Load and instantiate model
+NeuralNetworkClassifier = @load NeuralNetworkClassifier pkg="MLJFlux"
+clf = NeuralNetworkClassifier(
+    builder=MLJFlux.MLP(; hidden=(5,4), σ=Flux.relu),
+    optimiser=Optimisers.Adam(0.01),
+    batch_size=8,
+    epochs=100,
+    acceleration=CUDALibs()         # For GPU support
+    )
+
+# 3. Wrap it in a machine
+mach = machine(clf, X, y)
+
+# 4. Evaluate the model
+cv=CV(nfolds=5)
+evaluate!(mach, resampling=cv, measure=accuracy)
+```
+
+
+a.  Mostrar la distribución de frecuencias de las variables cuantitativas del data frame mediante histogramas.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using GLMakie
+    fig = Figure() 
+    ax = [Axis(fig[trunc(Int, i / 3), i % 3], title = names(df)[i+2]) for i in 0:12]
+    for i in 1:13
+        hist!(ax[i], df[!, i+1], strokewidth = 0.5, strokecolor = (:white, 0.5))
+    end
+    fig
+    ```
+    :::
