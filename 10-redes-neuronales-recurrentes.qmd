@@ -1,0 +1,333 @@
+---
+title: Redes de neuronas artificiales recurrentes
+lang: es
+---
+
+Las redes de neuronas artificiales recurrentes (RNN por sus siglas en inglés) son un tipo de redes neuronales diseñadas para trabajar con datos secuenciales. A diferencia de las redes neuronales tradicionales tienen una memoria interna capaz de recordar información de una secuencia temporal de entradas, y utilizar esa información  para predecir nuevos valores de la serie o clasificarla. Esto las hace ideales para tareas de predicción de series temporales, traducción de textos o audios, y procesamiento del lenguaje natural entre otras.
+
+En esta práctica veremos cómo funcionan estas redes neuronales y aprenderemos a implementarlas con el paquete `Lux` de Julia.
+
+## Ejercicios Resueltos
+
+Para la realización de esta práctica se requieren los siguientes paquetes:
+
+```julia
+using CSV  # Para la lectura de archivos CSV.
+using DataFrames  # Para el manejo de datos tabulares.
+using GLMakie  # Para el dibujo de gráficas.
+using Random  # Para la generación de números aleatorios.
+using Lux  # Para la implementación de redes neuronales.
+using Zygote  # Cálculo automático de derivadas y gradientes.
+using Optimisers # Para la optimización de funciones.
+using Statistics # Para las funciones de coste.
+```
+
+:::{#exr-redes-neuronales-recurrentes-fibonacci}
+La sucesión de Fibonacci es una sucesión recurrente que se define como 
+
+$$a_1 = 1,\quad a_2 =1, \quad a_n = a_{n-1} + a_{n-2}\quad \forall n\geq 3.$$
+
+a.  Construir una función para generar la sucesión de Fibonacci. 
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    function fibonacci(n::Int)
+        a = zeros(Float32, n)
+        a[1] = 1
+        a[2] = 1
+        for i in 3:n
+            a[i] = a[i-1] + a[i-2]
+        end
+        return a
+    end
+    ```
+    :::
+
+a.  Dividir la secuencia de los 30 primeros términos de la sucesión de Fibonacci en subsecuencias de longitud 5. Para cada una de estas subsecuencias, guardar los vectores de los  cuatro primeros términos en una matriz de entrada y el último valor en una matriz de salida. 
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    fib = fibonacci(25) 
+    tamaño = 4
+    n = 25 - tamaño
+    # La red esperar una entrada con dimensiones (características, tamaño, lote).
+    X =  Array{Float32}(undef, 1, tamaño, n)
+    Y = Array{Float32}(undef, 1, n)  
+    for i = 1:n
+        ventana = fib[i:i+tamaño-1]
+        etiqueta = fib[i+tamaño]
+        X[1, : , i] .= ventana
+        Y[1, i] = etiqueta
+    end
+    ```
+    :::
+
+a.  Definir una red neuronal con una neurona recurrente con un estado oculto de tamaño 1, sin término independiente (_bias_). Inicializar la red con pesos aleatorios.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Lux, Random
+
+    modelo = Chain(
+        Recurrence(RNNCell(1 => 1, identity; use_bias = false); return_sequence = false)
+    )
+
+    rng = Random.default_rng()
+    # Semilla aleatoria para reproducibilidad
+    Random.seed!(rng, 1234)
+    ps, st = Lux.setup(rng, modelo)
+    ```
+    :::
+
+a.  Definir como función de coste el error cuadrático medio para todas las secuencias del conjunto de entrenamiento.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Statistics
+    function coste(ps, st, X, Y)
+        ŷ, estado = modelo(X, ps, st)          # ŷ: (1, batch)
+        return mean((ŷ .- Y).^2)
+    end
+
+    coste(ps, st, X, Y)
+    ```
+    :::
+
+a.  Entrenar la red neuronal con el algoritmo de optimización `Adam` tomando una tasa de aprendizaje 0.1. Realizar 200 épocas.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Optimisers, Zygote
+    opt = Optimisers.setup(Optimisers.Adam(0.1f0), ps)
+
+    nepocas = 200
+    costes = []
+    for epoca in 1:nepocas
+        # gradiente de la red con respecto a los parámetros
+        gs = first(Zygote.gradient(p -> coste(p, st, X, Y), ps))
+        opt, ps = Optimisers.update(opt, ps, gs) 
+        push!(costes, coste(ps, st, X, Y))
+        println("Época $epoca | coste = ", costes[end])
+    end
+    ```
+    :::
+
+a.  Dibujar la evolución de los costes durante el proceso de entrenamiento.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using GLMakie
+    fig = Figure()
+    ax = Axis(fig[1, 1], xlabel = "Época", ylabel = "Error cuadrático medio", title = "Evolución del coste")
+    lines!(ax, costes)
+    fig
+    ```
+    :::
+
+a.  Usar la red neuronal entrenada para predecir el siguiente término de la serie de Fibonacci a partir de los 4 últimos términos de la serie.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    fib = fibonacci(30)
+    X_test = reshape(fib[end-tamaño : end-1], 1, tamaño, 1) 
+
+    y_test, _ = modelo(X_test, ps, st)
+    println("Predicción del término 30: ",  y_test[1, 1])
+    println("Término 30 de la sucesión de Fibonacci: ", fib[end])
+    ```
+    :::
+
+a.  Mostrar los pesos de la red neuronal entrenada.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    println("Pesos de la entrada de la red neuronal:", ps.layer_1.weight_ih)
+    println("Pesos del estado de la red neuronal:", ps.layer_1.weight_hh)
+    ```
+    :::
+:::
+
+:::{#exr-redes-neuronales-recurrentes-stock}
+El fichero `stock.csv` contiene los precios al cierre de las acciones de una empresas en bolsa de valores de los 300 primeros días del año 2020. 
+
+a.  Cargar el conjunto de datos y dibujar la serie temporal.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using CSV, DataFrames, GLMakie
+
+    # Cargamos el conjunto de datos en un data frame
+    df = CSV.read("datos/stock.csv", DataFrame)
+
+    # Creamos el gráfico de la evolución
+    fig = Figure()
+    ax = Axis(fig[1, 1], xlabel = "Día", ylabel = "Precio de la acción (€)", title = "Evolución del precio de la acción")
+
+    lines!(ax, df.dia, df.precio)
+    fig
+    ```
+    :::
+
+a.  Normalizar el conjunto de datos.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Statistics
+
+    # Simple normalization (z-score)
+    μ = mean(df.precio)
+    σ = std(df.precio)
+    serie = (df.precio .- μ) ./ σ     
+    ```
+    :::
+
+a.  Dividir la serie de los precios en secuencias de 50 términos. Para cada una de estas secuencias, guardar los vectores de los 40 primeros términos en una matriz de entrada y el último valor en una matriz de salida. 
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    function crear_secuencias(serie, tamaño)
+        # Número de ventanas
+        n = length(serie) - tamaño  
+
+        # X: (características=1, tamaño=seq_len, lotes=n)
+        X = Array{Float32}(undef, 1, tamaño, n)
+        # Y: (etiquetas=1, lotes=n)
+        Y = Array{Float32}(undef, 1, n)
+
+        for i in 1:n
+            ventana = serie[i : i + tamaño - 1]
+            etiqueta = serie[i + tamaño]
+            X[1, :, i] .= ventana
+            Y[1, i] = etiqueta
+        end
+
+        return X, Y
+    end
+
+    X, Y = crear_secuencias(serie, 50)
+    ```
+    :::
+
+a.  Dividir el conjunto de secuencias en un conjunto de entrenamiento con las 200 primeras secuencias y otro de prueba con las 50 restantes.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    Xentrenamiento, Yentrenamiento = X[:, :, 1:200], Y[:, 1:200]
+    Xtest, Ytest = X[:, :, 201:end], Y[:, 201:end]
+    ```
+    :::
+
+a.  Definir una red neuronal con una neurona recurrente con un estado oculto de tamaño 32 y una neurona densa de 1 salida. Inicializar la red con pesos aleatorios.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Lux, Random
+    modelo = Chain(
+        Recurrence(RNNCell(1 => 32); return_sequence = false),
+        Dense(32 => 1)
+    )
+
+    rng = Random.default_rng()
+    # Semilla aletoria para reproducibilidad
+    Random.seed!(rng, 1234)
+    ps, st = Lux.setup(rng, modelo)
+    ```
+    :::
+
+a.  Definir como función de coste el error cuadrático medio para todas las secuencias del conjunto de entrenamiento.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Statistics
+    function coste(ps, st, X, Y)
+        ŷ, estado = modelo(X, ps, st)
+        return mean((ŷ .- Y).^2)
+    end
+
+    coste(ps, st, X, Y)
+    ```
+    :::
+
+a.  Entrenar la red neuronal con el algoritmo de optimización `Adam` tomando una tasa de aprendizaje 0.01. Realizar 300 épocas.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using Optimisers, Zygote
+    opt = Optimisers.setup(Optimisers.Adam(0.01f0), ps)
+
+    nepocas = 300
+    costes = []
+    for epoca in 1:nepocas
+        # gradiente de la red con respecto a los parámetros
+        gs = first(Zygote.gradient(p -> coste(p, st, Xentrenamiento, Yentrenamiento), ps))
+        opt, ps = Optimisers.update(opt, ps, gs) 
+        push!(costes, coste(ps, st, Xentrenamiento, Yentrenamiento))
+        println("Época $epoca | coste = ", costes[end])
+    end
+    ```
+    :::
+
+a.  Dibujar la evolución de los costes durante el proceso de entrenamiento.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using GLMakie
+    fig = Figure()
+    ax = Axis(fig[1, 1], xlabel = "Época", ylabel = "Error cuadrático medio", title = "Evolución del coste")
+    lines!(ax, costes)
+    fig
+    ```
+    :::
+
+a.  Predecir el precio de las acciones de los próximos 50 días usando el conjunto de prueba. 
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    y_test, _ = modelo(Xtest, ps, st)
+    predicciones = y_test .* σ .+ μ
+
+    fig = Figure()
+    ax = Axis(fig[1,1], xlabel = "Día", ylabel = "Precio de acción", title = "Predicciones del precio de la acción")
+    lines!(ax, df.dia, df.precio, label = "Precio real")
+    lines!(ax, df.dia[251:end], vec(predicciones), label = "Predicción")
+    axislegend(ax, position = :rb)
+    fig
+    ```
+    :::
+:::
+
+

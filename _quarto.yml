@@ -5,7 +5,7 @@ project:
     port: 1313
     browser: false
 
-jupyter: julia-1.11
+#jupyter: julia-1.11
 
 execute: 
   freeze: auto
@@ -21,7 +21,7 @@ website:
       openSidebar: true
 
 book:
-  title: "Pácticas de Aprendizaje Automático con Julia"
+  title: "Prácticas de Aprendizaje Automático con Julia"
   author: "Alfredo Sánchez Alberca"
   date: "1/6/2024"
   output-file: "practicas-aprendizaje-automatico-julia"
@@ -46,7 +46,8 @@ book:
     # - 05-naive-bayes.qmd
     # - 06-k-vecinos.qmd
     - 07-arboles-decision.qmd
-    - 09-redes-neuronales.qmd
+    - 09-redes-neuronales-prealimentadas.qmd
+    - 10-redes-neuronales-recurrentes.qmd
 
 #bibliography: references.bib
 

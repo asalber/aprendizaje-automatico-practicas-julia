@@ -4,3 +4,145 @@ lang: es
 ---
 
 ## Ejercicios Resueltos
+
+El método de $K$ Vecinos más Cercanos (KNN) es uno de los algoritmos de aprendizaje supervisado más intuitivos que puede utilizarse tanto para clasificación como para regresión. La idea básica del algoritmo consiste en, dado un nuevo caso, buscar los $K$ ejemplos más cercanos en el conjunto de entrenamiento y utiliza la mayoría de las clases de esos puntos para predecir la clase del nuevo caso, o en el caso de regresión, la media ponderada de los valores de esos puntos.
+
+## Ejercicios Resueltos
+
+Para la realización de esta práctica se requieren los siguientes paquetes:
+
+```julia
+using CSV  # Para la lectura de archivos CSV.
+using DataFrames  # Para el manejo de datos tabulares.
+using GLMakie  # Para el dibujo de gráficas.
+using MLJ # Para la creación y entrenamiento de modelos de aprendizaje automático.
+using Statistics # Para las funciones de coste.
+```
+
+:::{#exr-k-vecinos-1}
+El conjunto de datos [pingüinos.csv](datos/pingüinos.csv) contiene un conjunto de datos sobre tres especies de pingüinos con las siguientes variables:
+
+- Especie: Especie de pingüino, comúnmente Adelie, Chinstrap o Gentoo.
+- Isla: Isla del archipiélago Palmer donde se realizó la observación.
+- Longitud_pico: Longitud del pico en mm.
+- Profundidad_pico: Profundidad del pico en mm
+- Longitud_ala: Longitud de la aleta en mm.
+- Peso: Masa corporal en gramos.
+- Sexo: Sexo
+
+a.  Cargar los datos del archivo [`pinguïnos.csv`](https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/pingüinos.csv) en un data frame.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using CSV, DataFrames
+    df = CSV.read(download("https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/pingüinos.csv"), DataFrame, missingstring="NA")
+    first(df, 5)
+    ```
+    :::
+
+a.  Seleccionar las columnas `Longitud_pico`, `Profundidad_pico`, `Longitud_ala` y `Especie` del data frame.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Seleccionamos las columnas Longitud_pico, Profundidad_pico, Longitud_ala y Especie.
+    select!(df, [:Longitud_pico, :Profundidad_pico, :Longitud_ala, :Especie])
+    first(df, 5)
+    ```
+    :::
+
+a.  Hacer un análisis de los datos perdidos en el data frame. 
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    describe(df, :nmissing)
+    ```
+    :::
+
+a.  Eliminar del data frame los casos con valores perdidos.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    dropmissing!(df)
+    ```
+    :::
+
+a.  Mostrar los tipos de datos científicos de cada columna del data frame.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función `schema` del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/).
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    using MLJ
+    schema(df)
+    ```
+    :::
+
+a.  Dividir el data frame en dos partes, una con las variables de entrada y otra con la variable de salida (`Especie`).
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`unpack`](https://juliaai.github.io/MLJ.jl/stable/preparing_data/#MLJBase.unpack) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para dividir el data frame en dos partes, una con las columnas de entrada del modelo y otra con la columna de salida.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    y, X = unpack(df, ==(:Especie));
+    ```
+    :::
+
+a.  Convertir las columnas `Longitud_pico`, `Profundidad_pico`, `Longitud_ala` a tipo científico `Continuous` y la columna `Especie` a tipo `Multiclass`.
+
+    :::{.callout-note collapse="true"}
+    ## Ayuda
+    Usar la función [`coerce!`](https://juliaai.github.io/MLJ.jl/stable/preparing_data/#MLJBase.coerce!) del paquete [`MLJ`](https://juliaai.github.io/MLJ.jl/) para transformar las variables categóricas en variables numéricas.
+    :::
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+    ```{julia}
+    # Convertimos la longitud del ala a tipo científico continuo.
+    coerce!(df, :Longitud_ala => Continuous)
+    # Convertimos la columna Especie a tipo Multiclass.
+    coerce!(df, Textual => Multiclass)
+    # Mostramos el nuevo esquema del data frame.
+    schema(df)
+    ```
+    :::
+
+a.  Dibujar un gráfico de dispersión de las variables `Longitud_pico`, `Profundidad_pico` y `Longitud_ala` coloreando los puntos según la especie.
+
+    :::{.callout-tip collapse="true"}
+    ## Solución
+
+```{julia}
+using GLMakie
+fig = Figure()
+ax = Axis3(fig[1, 1], title="Longitud pico vs Profundidad pico")
+scatter!(ax, df.Longitud_pico, df.Profundidad_pico, df.Longitud_ala)
+fig
+```
+
+```{julia}
+using AlgebraOfGraphics, CairoMakie
+
+df = (x=rand(100), y=rand(100))
+xy = data(df) * mapping(:x, :y)
+draw(xy)
+```
+    :::
