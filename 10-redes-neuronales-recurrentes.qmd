@@ -241,7 +241,7 @@ a.  Dividir el conjunto de secuencias en un conjunto de entrenamiento con las 20
     ```
     :::
 
-a.  Definir una red neuronal con una neurona recurrente con un estado oculto de tamaño 32 y una neurona densa de 1 salida. Inicializar la red con pesos aleatorios.
+a.  Definir una red neuronal con una neurona recurrente con un estado oculto de tamaño 64 y una neurona densa de 1 salida. Inicializar la red con pesos aleatorios.
 
     :::{.callout-tip collapse="true"}
     ## Solución
@@ -249,8 +249,8 @@ a.  Definir una red neuronal con una neurona recurrente con un estado oculto de 
     ```{julia}
     using Lux, Random
     modelo = Chain(
-        Recurrence(RNNCell(1 => 32); return_sequence = false),
-        Dense(32 => 1)
+        Recurrence(RNNCell(1 => 64); return_sequence = false),
+        Dense(64 => 1)
     )
 
     rng = Random.default_rng()
@@ -285,7 +285,7 @@ a.  Entrenar la red neuronal con el algoritmo de optimización `Adam` tomando un
     using Optimisers, Zygote
     opt = Optimisers.setup(Optimisers.Adam(0.01f0), ps)
 
-    nepocas = 300
+    nepocas = 100
     costes = []
     for epoca in 1:nepocas
         # gradiente de la red con respecto a los parámetros
