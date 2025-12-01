@@ -164,7 +164,7 @@ a.  Mostrar los pesos de la red neuronal entrenada.
 :::
 
 :::{#exr-redes-neuronales-recurrentes-stock}
-El fichero `stock.csv` contiene los precios al cierre de las acciones de una empresas en bolsa de valores de los 300 primeros días del año 2020. 
+El fichero [`stock.csv`](https://aprendeconalf.es/aprendizaje-automatico-practicas-julia/datos/) contiene los precios al cierre de las acciones de una empresas en bolsa de valores de los 300 primeros días del año 2020. 
 
 a.  Cargar el conjunto de datos y dibujar la serie temporal.
 
